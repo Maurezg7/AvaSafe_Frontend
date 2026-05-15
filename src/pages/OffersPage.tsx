@@ -1,3 +1,8 @@
+import { useState, useEffect, useRef } from "react";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ShieldDropdown from "../components/ShieldDropdown";
+import UserMenu from "../components/UserMenu";
+
 type Offer = {
   id: number;
   badge?: string;
@@ -80,7 +85,23 @@ const offers: Offer[] = [
   },
 ];
 
-export default function OffersPage() {
+export default function OffersPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [estadoOpen, setEstadoOpen] = useState(false);
+  const [shieldOpen, setShieldOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const estadoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFiltersOpen(false);
+      if (estadoRef.current && !estadoRef.current.contains(e.target as Node)) setEstadoOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
       <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
@@ -98,51 +119,73 @@ export default function OffersPage() {
             />
           </div>
 
-          <div className="relative">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
+          <div className="relative" ref={estadoRef}>
+            <button onClick={() => setEstadoOpen(!estadoOpen)} className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
               <span>Estado</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </button>
+            {estadoOpen && (
+              <div className="absolute top-full left-0 mt-2 w-48 bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-2 space-y-1">
+                {["Pendiente", "Aceptada", "Rechazada"].map((s) => (
+                  <button key={s} onClick={() => { setEstadoOpen(false); }} className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-white hover:bg-brand-dark rounded-xl transition-colors">{s}</button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <button className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span>Filtros</span>
-          </button>
+          <div className="relative" ref={filterRef}>
+            <button onClick={() => setFiltersOpen(!filtersOpen)} className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              <span>Filtros</span>
+            </button>
+            {filtersOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Filtros</h3>
+                  <button className="text-[11px] text-brand-purple hover:underline">Limpiar todo</button>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] text-gray-500 uppercase tracking-wider">Condición</span>
+                  <div className="flex gap-2">
+                    {["Nuevo", "Usado"].map((c) => (
+                      <button key={c} className="text-[10px] px-3 py-1.5 bg-brand-dark text-gray-400 rounded-xl border border-white/5 hover:border-brand-purple/30 transition-colors">{c}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] text-gray-500 uppercase tracking-wider">Precio mínimo</span>
+                  <input type="text" placeholder="0.00 AVAX" className="w-full px-3 py-2 bg-brand-dark border border-white/5 rounded-xl text-xs text-gray-200 placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center space-x-6">
-          <button className="relative text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
-          </button>
+          <div className="relative">
+            <button onClick={() => setNotificationsOpen(!notificationsOpen)} className="relative text-gray-400 hover:text-white transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
+            </button>
+            <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+          </div>
 
-          <button className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button className="text-gray-400 hover:text-white transition-colors" onClick={() => setShieldOpen(!shieldOpen)}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </button>
+            <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
+          </div>
 
-          <button className="flex items-center space-x-3 px-3 py-1.5 bg-brand-sidebar rounded-full border border-white/5 hover:bg-brand-sidebar/80 transition-all">
-            <img
-              src="https://i.pravatar.cc/100"
-              alt="Avatar"
-              className="w-7 h-7 rounded-full border border-brand-purple/50"
-            />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[9px] px-1 bg-brand-purple/20 text-brand-purple rounded">Verificado</span>
-            </div>
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
         </div>
       </header>
 
@@ -174,7 +217,7 @@ export default function OffersPage() {
               key={offer.id}
               className="bg-brand-sidebar rounded-[2rem] p-5 flex flex-col border border-white/5 relative group hover:border-brand-purple/40 transition-all"
             >
-              <button className="absolute top-6 left-6 p-2 bg-brand-dark/40 rounded-full text-white/80 hover:text-red-400 transition-colors z-10">
+              <button className="absolute top-6 left-6 p-2 bg-brand-dark/40 rounded-full text-white/80 hover:text-brand-purple transition-colors z-10">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
@@ -237,7 +280,7 @@ export default function OffersPage() {
                       offer.status === "Aceptada"
                         ? "bg-green-500/20 text-green-400"
                         : offer.status === "Rechazada"
-                        ? "bg-red-500/20 text-red-400"
+                        ? "bg-brand-purple/20 text-brand-purple"
                         : "bg-yellow-500/20 text-yellow-400"
                     }`}>
                       {offer.status}
@@ -257,60 +300,51 @@ export default function OffersPage() {
         </div>
       </section>
 
-      <section className="px-8 pb-10 mt-auto">
+      <section className="px-8 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3 bg-brand-sidebar/50 rounded-[2rem] p-6 border border-white/5 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-brand-purple/10 rounded-2xl text-brand-purple">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="lg:col-span-3 py-4 px-6 mt-4 border-t border-violet-500/10 bg-[#1e1e24]/30 rounded-xl grid grid-cols-4 gap-4 items-center justify-items-center">
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold">12,458+</span>
-                <span className="text-[10px] text-gray-500 uppercase font-semibold">Usuarios Activos</span>
+                <span className="text-sm font-bold">12,458+</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">Usuarios Activos</span>
               </div>
             </div>
-
-            <div className="h-10 w-[1px] bg-white/5" />
-
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-brand-purple/10 rounded-2xl text-brand-purple">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold">3,245+</span>
-                <span className="text-[10px] text-gray-500 uppercase font-semibold">Productos Listados</span>
+                <span className="text-sm font-bold">3,245+</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">Productos Listados</span>
               </div>
             </div>
-
-            <div className="h-10 w-[1px] bg-white/5" />
-
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-brand-purple/10 rounded-2xl text-brand-purple">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold">8,932+</span>
-                <span className="text-[10px] text-gray-500 uppercase font-semibold">Transacciones</span>
+                <span className="text-sm font-bold">8,932+</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones</span>
               </div>
             </div>
-
-            <div className="h-10 w-[1px] bg-white/5" />
-
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-brand-purple/10 rounded-2xl text-brand-purple">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold">99.9%</span>
-                <span className="text-[10px] text-gray-500 uppercase font-semibold">Transacciones Seguras</span>
+                <span className="text-sm font-bold">99.9%</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones Seguras</span>
               </div>
             </div>
           </div>

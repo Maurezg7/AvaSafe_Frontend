@@ -1,3 +1,8 @@
+import { useState, useEffect, useRef } from "react";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ShieldDropdown from "../components/ShieldDropdown";
+import UserMenu from "../components/UserMenu";
+
 type Purchase = {
   id: number;
   name: string;
@@ -80,19 +85,34 @@ const statusColors: Record<string, string> = {
   "En Proceso": "text-purple-400 bg-purple-500/15",
   "En Escrow": "text-blue-400 bg-blue-500/15",
   Completada: "text-green-400 bg-green-500/15",
-  Cancelada: "text-red-400 bg-red-500/15",
+  Cancelada: "text-brand-purple bg-brand-purple/15",
 };
 
 const progressColors: Record<string, string> = {
   "En Proceso": "bg-purple-500",
   "En Escrow": "bg-blue-500",
   Completada: "bg-green-500",
-  Cancelada: "bg-red-500",
+  Cancelada: "bg-brand-purple",
 };
 
 type Tab = "Todas" | "En Proceso" | "En Escrow" | "Completadas" | "Canceladas";
 
-export default function ComprasPage() {
+export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [shieldOpen, setShieldOpen] = useState(false);
+  const [estadoOpen, setEstadoOpen] = useState(false);
+  const estadoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (estadoRef.current && !estadoRef.current.contains(e.target as Node)) {
+        setEstadoOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
       <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
@@ -110,42 +130,38 @@ export default function ComprasPage() {
             />
           </div>
 
-          <button className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span>Filtros</span>
-          </button>
+          <div className="relative" ref={estadoRef}>
+            <button onClick={() => setEstadoOpen(!estadoOpen)} className="flex items-center space-x-2 px-4 py-2 bg-brand-sidebar rounded-xl text-sm text-gray-400 hover:text-white transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              <span>Filtros</span>
+            </button>
+            {estadoOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Filtros</h3>
+                  <button className="text-[11px] text-brand-purple hover:underline">Limpiar todo</button>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] text-gray-500 uppercase tracking-wider">Estado</span>
+                  <div className="flex gap-2">
+                    {["En Proceso", "En Escrow", "Completada", "Cancelada"].map((s) => (
+                      <button key={s} className="text-[10px] px-3 py-1.5 bg-brand-dark text-gray-400 rounded-xl border border-white/5 hover:border-brand-purple/30 transition-colors">{s}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center space-x-6">
-          <button className="relative text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
-          </button>
+          <NotificationDropdown notificationsOpen={notificationsOpen} setNotificationsOpen={setNotificationsOpen} />
 
-          <button className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <ShieldDropdown shieldOpen={shieldOpen} setShieldOpen={setShieldOpen} />
 
-          <button className="flex items-center space-x-3 px-3 py-1.5 bg-brand-sidebar rounded-full border border-white/5 hover:bg-brand-sidebar/80 transition-all">
-            <img
-              src="https://i.pravatar.cc/100"
-              alt="Avatar"
-              className="w-7 h-7 rounded-full border border-brand-purple/50"
-            />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[9px] px-1 bg-brand-purple/20 text-brand-purple rounded">Verificado</span>
-            </div>
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
         </div>
       </header>
 

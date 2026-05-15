@@ -1,42 +1,42 @@
-export default function SoportePage() {
+import { useState } from "react";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ShieldDropdown from "../components/ShieldDropdown";
+import UserMenu from "../components/UserMenu";
+
+export default function SoportePage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [shieldOpen, setShieldOpen] = useState(false);
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
-      <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
-        <div>
-          <h1 className="text-xl font-bold">Soporte</h1>
-          <p className="text-[10px] text-gray-500">Encuentra respuestas, guías y contacto directo con nuestro equipo.</p>
-        </div>
-
+      <header className="sticky top-0 z-10 flex items-center justify-end px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center space-x-6">
-          <button className="relative text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
-          </button>
-          <button className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
-          <button className="flex items-center space-x-3 px-3 py-1.5 bg-brand-sidebar rounded-full border border-white/5 hover:bg-brand-sidebar/80 transition-all">
-            <img src="https://i.pravatar.cc/100" alt="Avatar" className="w-7 h-7 rounded-full border border-brand-purple/50" />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[9px] px-1 bg-brand-purple/20 text-brand-purple rounded">Verificado</span>
-            </div>
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button className="text-gray-400 hover:text-white transition-colors" onClick={() => setNotificationsOpen(!notificationsOpen)}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
+            </button>
+            <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+          </div>
+          <div className="relative">
+            <button className="text-gray-400 hover:text-white transition-colors" onClick={() => setShieldOpen(!shieldOpen)}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </button>
+            <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
+          </div>
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
         </div>
       </header>
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col min-w-0">
-          <section className="px-8 py-10 pb-6">
-            <h1 className="text-4xl font-bold leading-tight">Soporte</h1>
-            <p className="text-sm text-gray-500 mt-2">Encuentra respuestas, guías y contacto directo con nuestro equipo.</p>
+          <section className="px-8 pt-8">
+            <h1 className="text-4xl font-bold text-white mb-2">Soporte</h1>
+            <p className="text-sm text-gray-400 mb-6">Encuentra respuestas, guías y contacto directo con nuestro equipo.</p>
           </section>
 
           <section className="px-8 pb-8">
@@ -149,8 +149,8 @@ export default function SoportePage() {
         <aside className="w-72 flex-shrink-0 p-6 pl-0 space-y-4">
           <div className="bg-brand-sidebar rounded-2xl p-5 border border-white/5">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[9px] text-red-400 font-semibold uppercase tracking-wider">Acción urgente</span>
+              <div className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />
+              <span className="text-[9px] text-brand-purple font-semibold uppercase tracking-wider">Acción urgente</span>
             </div>
             <p className="text-[10px] text-gray-500 mb-4">Tienes una transacción en estado crítico. Revisa los detalles del contrato.</p>
             <button className="w-full py-2.5 bg-gradient-to-r from-brand-purple to-pink-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center space-x-2 transition-all hover:opacity-90">

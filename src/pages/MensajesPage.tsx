@@ -1,3 +1,8 @@
+import { useState } from "react";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ShieldDropdown from "../components/ShieldDropdown";
+import UserMenu from "../components/UserMenu";
+
 type Message = {
   id: number;
   text: string;
@@ -86,39 +91,24 @@ const conversations: Conversation[] = [
   },
 ];
 
-export default function MensajesPage() {
-  return (
-    <main className="flex-1 flex flex-col overflow-hidden bg-brand-dark">
-      <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
-        <div>
-          <h1 className="text-xl font-bold">Mensajes</h1>
-          <p className="text-[10px] text-gray-500">Comunícate de forma segura con otros usuarios.</p>
-        </div>
+export default function MensajesPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [shieldOpen, setShieldOpen] = useState(false);
 
+  return (
+    <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
+      <header className="sticky top-0 z-10 flex items-center justify-end px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center space-x-6">
-          <button className="relative text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
-          </button>
-          <button className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
-          <button className="flex items-center space-x-3 px-3 py-1.5 bg-brand-sidebar rounded-full border border-white/5 hover:bg-brand-sidebar/80 transition-all">
-            <img src="https://i.pravatar.cc/100" alt="Avatar" className="w-7 h-7 rounded-full border border-brand-purple/50" />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[9px] px-1 bg-brand-purple/20 text-brand-purple rounded">Verificado</span>
-            </div>
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+          <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
         </div>
       </header>
+
+      <section className="px-8 pt-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Mensajes</h1>
+        <p className="text-sm text-gray-400 mb-6">Comunícate de forma segura y encriptada con otros compradores y vendedores.</p>
+      </section>
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-80 flex-shrink-0 flex flex-col border-r border-white/5">

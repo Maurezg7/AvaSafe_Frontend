@@ -1,8 +1,6 @@
 type NavProps = {
   activePage: string;
   onNavigate: (page: string) => void;
-  isLoggedIn?: boolean;
-  onLogin?: () => void;
 };
 
 const navItems = [
@@ -90,25 +88,22 @@ const navItems = [
   },
 ];
 
-export default function Nav({ activePage, onNavigate, isLoggedIn, onLogin }: NavProps) {
+export default function Nav({ activePage, onNavigate }: NavProps) {
+
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col border-r border-white/5 overflow-y-auto no-scrollbar bg-brand-sidebar">
       <div className="p-6">
-        <div className="flex items-center space-x-2 mb-1">
-          <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
+          <div className="flex items-center space-x-2 mb-1">
+            <img src="/AvaSafe_Logo.png" alt="AvaSafe" className="w-10 h-10 object-contain" />
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight">AvaSafe</span>
+              <span className="text-xs text-brand-purple -mt-1 font-semibold">Market</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-bold tracking-tight">AvaSafe</span>
-            <span className="text-xs text-brand-purple -mt-1 font-semibold">Market</span>
-          </div>
-        </div>
         <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Marketplace P2P Descentralizado</p>
       </div>
 
-      <nav className="flex-1 px-4 space-y-1 mt-4">
+      <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => (
           <button
             key={item.label}
@@ -123,33 +118,10 @@ export default function Nav({ activePage, onNavigate, isLoggedIn, onLogin }: Nav
             <span>{item.label}</span>
           </button>
         ))}
+
       </nav>
 
-      <div className="p-4 space-y-3">
-        {isLoggedIn ? (
-          <div className="flex items-center space-x-3 px-3 py-2.5 bg-[#1e1e1e] rounded-xl border border-white/5">
-            <img
-              src="https://i.pravatar.cc/100"
-              alt="Avatar"
-              className="w-8 h-8 rounded-full border border-brand-purple/50"
-            />
-            <div className="flex flex-col leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[8px] px-1 bg-brand-purple/20 text-brand-purple rounded w-fit">Verificado</span>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={onLogin}
-            className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span>Iniciar Sesión</span>
-          </button>
-        )}
-
+      <div className="p-4 mt-auto">
         <div className="bg-[#1e1e1e] rounded-2xl p-4 border border-white/5">
           <div className="flex items-center space-x-2 mb-2">
             <svg className="w-5 h-5 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">

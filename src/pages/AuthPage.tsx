@@ -1,17 +1,15 @@
 import { useState } from "react";
 
-export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export default function AuthPage({ initialMode = "login" }: { initialMode?: "login" | "register" }) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-brand-dark overflow-y-auto no-scrollbar">
-      <div className="w-full max-w-md px-8 py-10">
-        {mode === "login" ? (
-          <LoginView onSwitch={() => setMode("register")} />
-        ) : (
-          <RegisterView onSwitch={() => setMode("login")} />
-        )}
-      </div>
+    <div className="w-full max-w-md px-8 py-10">
+      {mode === "login" ? (
+        <LoginView onSwitch={() => setMode("register")} />
+      ) : (
+        <RegisterView onSwitch={() => setMode("login")} />
+      )}
     </div>
   );
 }
@@ -23,11 +21,7 @@ function LoginView({ onSwitch }: { onSwitch: () => void }) {
     <div className="space-y-8">
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
-          <div className="w-10 h-10 bg-brand-purple rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </div>
+          <img src="/AvaSafe_Logo.png" alt="AvaSafe" className="w-10 h-10 object-contain" />
           <div className="flex flex-col items-start">
             <span className="text-2xl font-bold tracking-tight">AvaSafe</span>
             <span className="text-xs text-brand-purple -mt-1 font-semibold">Market</span>
@@ -116,11 +110,7 @@ function RegisterView({ onSwitch }: { onSwitch: () => void }) {
     <div className="space-y-8">
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
-          <div className="w-10 h-10 bg-brand-purple rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </div>
+          <img src="/AvaSafe_Logo.png" alt="AvaSafe" className="w-10 h-10 object-contain" />
           <div className="flex flex-col items-start">
             <span className="text-2xl font-bold tracking-tight">AvaSafe</span>
             <span className="text-xs text-brand-purple -mt-1 font-semibold">Market</span>

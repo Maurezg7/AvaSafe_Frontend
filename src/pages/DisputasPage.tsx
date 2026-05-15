@@ -1,3 +1,8 @@
+import { useState } from "react";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ShieldDropdown from "../components/ShieldDropdown";
+import UserMenu from "../components/UserMenu";
+
 type Dispute = {
   id: number;
   status: "En disputa" | "En revisión" | "Resuelta" | "Cerrada";
@@ -57,51 +62,29 @@ const statusStyles: Record<string, string> = {
   Cerrada: "bg-gray-500/15 text-gray-400",
 };
 
-export default function DisputasPage() {
+export default function DisputasPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [shieldOpen, setShieldOpen] = useState(false);
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
-      <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
-        <div>
-          <h1 className="text-xl font-bold">Disputas</h1>
-          <p className="text-[10px] text-gray-500">Gestiona y da seguimiento a tus disputas abiertas y resueltas.</p>
-        </div>
-
+      <header className="sticky top-0 z-10 flex items-center justify-end px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center space-x-6">
-          <button className="relative text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-brand-purple ring-2 ring-brand-dark" />
-          </button>
+          <NotificationDropdown isOpen={notificationsOpen} onToggle={() => setNotificationsOpen(!notificationsOpen)} />
 
-          <button className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <ShieldDropdown isOpen={shieldOpen} onToggle={() => setShieldOpen(!shieldOpen)} />
 
-          <button className="flex items-center space-x-3 px-3 py-1.5 bg-brand-sidebar rounded-full border border-white/5 hover:bg-brand-sidebar/80 transition-all">
-            <img src="https://i.pravatar.cc/100" alt="Avatar" className="w-7 h-7 rounded-full border border-brand-purple/50" />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-semibold">AvaTrader</span>
-              <span className="text-[9px] px-1 bg-brand-purple/20 text-brand-purple rounded">Verificado</span>
-            </div>
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
         </div>
       </header>
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col min-w-0">
-          <section className="px-8 py-10 pb-6">
-            <h1 className="text-4xl font-bold leading-tight">Disputas</h1>
-            <p className="text-sm text-gray-500 mt-2">Gestiona y da seguimiento a tus disputas abiertas y resueltas.</p>
-          </section>
+          <section className="px-8 pt-8">
+            <h1 className="text-4xl font-bold text-white mb-2">Disputas</h1>
+            <p className="text-sm text-gray-400 mb-6">Gestiona y da seguimiento a tus disputas abiertas y resueltas.</p>
 
-          <section className="px-8 pb-8">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mt-6">
               {(["Abiertas (2)", "En Revisión", "Resueltas", "Cerradas"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -242,7 +225,7 @@ export default function DisputasPage() {
 
           <div className="bg-brand-sidebar rounded-2xl p-5 border border-white/5 group hover:border-brand-purple/30 transition-all">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400">
+              <div className="w-9 h-9 rounded-xl bg-brand-purple/20 flex items-center justify-center text-brand-purple">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
@@ -252,7 +235,7 @@ export default function DisputasPage() {
             <p className="text-[10px] text-gray-500 leading-relaxed mb-3">
               Todos los usuarios involucrados en disputas pasan por un proceso de validación de identidad y reputación.
             </p>
-            <button className="text-[9px] text-red-400 hover:underline flex items-center">
+            <button className="text-[9px] text-brand-purple hover:underline flex items-center">
               Ver Más
               <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
