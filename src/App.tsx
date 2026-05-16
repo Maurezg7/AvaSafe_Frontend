@@ -12,27 +12,48 @@ import SoportePage from "./pages/SoportePage";
 import Configuracion from "./pages/ConfiguracionPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import OfertaPage from "./pages/OfertaPage";
+
+const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem("avasafe_token")));
   const navigate = useNavigate();
 
   const onLogin = () => navigate("/login");
 
+  const onLogout = () => {
+    localStorage.removeItem("avasafe_token");
+    localStorage.removeItem("avasafe_user");
+    localStorage.removeItem("avasafe_wallet_address");
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
+
+  const onAuthSuccess = () => {
+    setIsLoggedIn(true);
+    navigate("/");
+  };
+
+  const routeProps = { isLoggedIn, onLogin, onLogout };
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<LoginPage onAuthSuccess={onAuthSuccess} />} />
+      <Route path="/register" element={<RegisterPage onAuthSuccess={onAuthSuccess} />} />
       <Route element={<DashboardLayout />}>
-        <Route index element={<ExplorerPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="ofertas" element={<OffersPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="compras" element={<ComprasPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="mensajes" element={<MensajesPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="favoritos" element={<FavoritosPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="disputas" element={<DisputasPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="reputacion" element={<ReputacionPage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="soporte" element={<SoportePage isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
-        <Route path="configuracion" element={<Configuracion isLoggedIn={isLoggedIn} onLogin={onLogin} />} />
+        <Route index element={<ExplorerPage {...routeProps} />} />
+        <Route path="oferta/:id" element={<OfertaPage {...routeProps} />} />
+        <Route path="ofertas/:id" element={<OfertaPage {...routeProps} />} />
+        <Route path="ofertas" element={<OffersPage {...routeProps} />} />
+        <Route path="compras" element={<ComprasPage {...routeProps} />} />
+        <Route path="mensajes" element={<MensajesPage {...routeProps} />} />
+        <Route path="favoritos" element={<FavoritosPage {...routeProps} />} />
+        <Route path="disputas" element={<DisputasPage {...routeProps} />} />
+        <Route path="reputacion" element={<ReputacionPage {...routeProps} />} />
+        <Route path="soporte" element={<SoportePage {...routeProps} />} />
+        <Route path="configuracion" element={<Configuracion {...routeProps} />} />
       </Route>
     </Routes>
   );
@@ -40,8 +61,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
