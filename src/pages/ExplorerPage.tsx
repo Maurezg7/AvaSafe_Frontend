@@ -2,10 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+<<<<<<< HEAD
 import { useProduct } from '../../hooks/useProductos';
 import type { ProductoInterface } from "../interfaces/producto.interface";
 import { useNavigate } from "react-router-dom";
 import { useMetaMask } from "../../hooks/useMetaMask";
+=======
+import { productosService, type Producto } from "../api/productos.service";
+import { ordenesService } from "../api/ordenes.service";
+import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+>>>>>>> e4b2f40 (Version 0.0.4)
 
 type Product = {
   id: number;
@@ -147,10 +154,35 @@ const products: Product[] = [
 ];
 
 export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+<<<<<<< HEAD
   const navigate = useNavigate();
   const { isConnected, connectWallet } = useMetaMask();
   const {queryProductos}=useProduct()
   const data=queryProductos.data ?? []
+=======
+  const { t } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleBuy = async (sellerAddress: string) => {
+    if (!isLoggedIn || !user) {
+      onLogin();
+      return;
+    }
+    try {
+      const nro_pedido = `PED-${Date.now()}`;
+      await ordenesService.create({
+        buyer: user.address,
+        seller: sellerAddress,
+        nro_pedido,
+        state: "proceso",
+      });
+      navigate("/compras");
+    } catch {
+      alert("Error al crear la orden");
+    }
+  };
+>>>>>>> e4b2f40 (Version 0.0.4)
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -564,12 +596,67 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
                   </div>
                 )} */}
 
+<<<<<<< HEAD
                 <div className="aspect-square rounded-2xl bg-brand-dark overflow-hidden mb-4 flex items-center justify-center p-4">
                   <img
                     src={product.image_url}
                     alt={product.name}
                     className="object-contain transform group-hover:scale-110 transition-transform duration-500"
                   />
+=======
+                  <div className="flex items-center space-x-1 text-[10px] text-gray-500 mb-2">
+                    <div className="flex items-center text-brand-purple">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="ml-1 font-bold">{product.rating}</span>
+                      <span className="text-gray-500 ml-0.5">({product.reviews})</span>
+                    </div>
+                    <span>•</span>
+                    <span>{product.time}</span>
+                    <span>•</span>
+                    <span>{product.location}</span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-white mb-0.5">{product.name}</h3>
+                  <p className="text-[10px] text-gray-500 mb-4">{product.description}</p>
+
+                  <div className="mt-auto">
+                    <div className="flex flex-col mb-4">
+                      <span className="text-lg font-bold text-brand-purple">{product.price}</span>
+                      <span className="text-[10px] text-gray-500">≈ {product.usd}</span>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleBuy(product.seller)}
+                        className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                        </svg>
+                        <span>Comprar ahora</span>
+                      </button>
+                      <button
+                        onClick={() => navigate("/mensajes", { state: { seller: product.seller, productName: product.name } })}
+                        className="flex-1 py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
+                      >
+                        <span>{t.explorer.makePrivateOffer}</span>
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              )) : (
+                <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+                  <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                  <p className="text-lg font-medium">{t.explorer.noResults}</p>
+                  <p className="text-sm mt-1">{t.explorer.noResultsHint}</p>
+>>>>>>> e4b2f40 (Version 0.0.4)
                 </div>
 
                 <div className="flex items-center justify-between mb-3">

@@ -2,6 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+<<<<<<< HEAD
+=======
+import { useLanguage } from "../context/LanguageContext";
+import { useAuth } from "../context/AuthContext";
+import { ordenesService, type Orden } from "../api/ordenes.service";
+>>>>>>> e4b2f40 (Version 0.0.4)
 
 type Purchase = {
   id: number;
@@ -18,68 +24,19 @@ type Purchase = {
   progress: number;
 };
 
-const purchases: Purchase[] = [
-  {
-    id: 1,
-    name: 'MacBook Pro 16" M3 Max',
-    description: "64GB RAM - 2TB SSD",
-    seller: "TechSeller",
-    rating: "4.9",
-    reviews: 128,
-    time: "Comprado hoy",
-    price: "2.85 AVAX",
-    usd: "$2,184.25 USD",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuABOYQ0Ho6iHKTUbl2XWdSt3biQb6FN27ZWN9OGa6mMK7dv15Zl93muCEz-5ZX9NO1Cfh5ZveLEBfZmYSSq2Y1ugZCY8cdh2Oy-dW0hKuVQdELQ99tMLiCdiittxp4P0njek5vLG2LvBhk9an6CNCjzB_OXtUWWt5V1tPILBVi__bAAOBueWu1v3oH8LVTRin-DyRMckQn-VHOe6swU2QnbzkgPhnVJ3i8f0h1a2dXsWXrg2h5XrPtkcjfSDT8hatxsNcr_E78_g0Iq",
-    status: "En Escrow",
-    progress: 60,
-  },
-  {
-    id: 2,
-    name: "Iphone 16 Pro Max",
-    description: "8GB RAM - 1TB SSD",
-    seller: "LuxTime",
-    rating: "5.0",
-    reviews: 89,
-    time: "Comprado ayer",
-    price: "9.57 AVAX",
-    usd: "$7,469.25 USD",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCF1Bksx3KtVTnSUfL7L2ATzAExSa8RAMYtFcXnEOWnpFGBOycBnEDloiFXbj2S9FLvfVHiWzHqYJdkVvnUxGDEN0eZrJOW6psFuxuqBXnuyjRC_1LvFl6DWY79IbL_I1xSX20aeqCEuDJn94R5Ltk4zUVjPo1eJEE_CVfOhtpB9k7hUqu3YGrYIzO-tS3FbBrDH4SEx9obSZFfPkrue0XcZSeHJZgwcZ95DU9s0okjX1-W0guuuE-59cdbRb6Pxvs23xRz9mrCXAm9",
-    status: "Completada",
-    progress: 100,
-  },
-  {
-    id: 3,
-    name: "Rolex Daytona",
-    description: "Oystersteel - Black Dial",
-    seller: "CryptoGear",
-    rating: "4.8",
-    reviews: 76,
-    time: "Comprado hace 2d",
-    price: "1.25 AVAX",
-    usd: "$957.75 USD",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBHCQA5bEVdqGEZVCh2ZF5aW-J8af47d4ZtDUYElK4XzQr9ST8ygaCiInCgD7wu524H70YSW7uLS5PzNxycQ15USYLzp4WBFA1SqCfXOr5bHI3_28Rv-pfKGFA5zat4lw3AkuV-NMcX4ufaIMTe0xhU6OubH7ytQf8qaSOPDgxrOv6Mr_qD6Ytv_IYxu-u1KL_gcM7fif-YbXBsfRxvr_sLrzlPn0X-KGPgzk_vaXhC9M0m_70ca97ZkNTl9BLhAaKf9C0szisJpKJg",
-    status: "En Proceso",
-    progress: 25,
-  },
-  {
-    id: 4,
-    name: "Ipad Pro 11",
-    description: "64GB RAM - 1TB SSD",
-    seller: "SwissWatch",
-    rating: "4.9",
-    reviews: 56,
-    time: "Comprado hace 3d",
-    price: "18.50 AVAX",
-    usd: "$14,209.50 USD",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBhCHKKB8ofzt9xC2APBHpxOTwL5mo2YQdi2uBoNgCIMh5dUgVBH1h5JCHyW1MKHs0JxJn30qHQ4um5bAIc3sKfzxfThrevrktXCzWI7W7gAfziDYxM7RJJfLz1CiLNCkghaGkZ2AmKWUra9WT8ayLB8Cwd2_uyRlJC07ryj6zRFa_DLTgakD1UctCW8WlHiFrLQpmjj9rsKVXFWxPcxj6dLdGD3OtODdvHS9RZkRQT9IP7IyzzNo9ee533ZUHGksOZk-6PKichQuZD",
-    status: "Cancelada",
-    progress: 10,
-  },
-];
+const statusMap: Record<string, Purchase["status"]> = {
+  proceso: "En Proceso",
+  escrow: "En Escrow",
+  completado: "Completada",
+  cancelado: "Cancelada",
+};
+
+const progressMap: Record<string, number> = {
+  proceso: 25,
+  escrow: 60,
+  completado: 100,
+  cancelado: 10,
+};
 
 const statusColors: Record<string, string> = {
   "En Proceso": "text-purple-400 bg-purple-500/15",
@@ -88,20 +45,48 @@ const statusColors: Record<string, string> = {
   Cancelada: "text-brand-purple bg-brand-purple/15",
 };
 
-const progressColors: Record<string, string> = {
-  "En Proceso": "bg-purple-500",
-  "En Escrow": "bg-blue-500",
-  Completada: "bg-green-500",
-  Cancelada: "bg-brand-purple",
-};
-
 type Tab = "Todas" | "En Proceso" | "En Escrow" | "Completadas" | "Canceladas";
 
 export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+<<<<<<< HEAD
+=======
+  const { t } = useLanguage();
+  const { user } = useAuth();
+>>>>>>> e4b2f40 (Version 0.0.4)
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const estadoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user?.address) {
+      setLoading(false);
+      return;
+    }
+    ordenesService.findByBuyer(user.address)
+      .then((res) => {
+        const mapped = res.data.map((o: Orden, i: number) => ({
+          id: i + 1,
+          name: o.nro_pedido || `Orden #${o.id_order.slice(0, 8)}`,
+          description: `${o.amountAvax ? o.amountAvax + " AVAX" : ""}`,
+          seller: o.seller,
+          rating: "0.0",
+          reviews: 0,
+          time: new Date(o.date_order).toLocaleDateString(),
+          price: o.amountAvax ? `${o.amountAvax} AVAX` : "—",
+          usd: "",
+          image: "",
+          status: statusMap[o.state] || "En Proceso",
+          progress: progressMap[o.state] || 25,
+        }));
+        setPurchases(mapped);
+      })
+      .catch((err) => setFetchError(err?.message || "Error al cargar compras"))
+      .finally(() => setLoading(false));
+  }, [user?.address, t]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -161,9 +146,9 @@ export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boole
         </div>
 
         <div className="flex items-center space-x-6">
-          <NotificationDropdown notificationsOpen={notificationsOpen} setNotificationsOpen={setNotificationsOpen} />
+          <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
-          <ShieldDropdown shieldOpen={shieldOpen} setShieldOpen={setShieldOpen} />
+          <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
 
       <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />        </div>
       </header>
@@ -197,7 +182,29 @@ export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boole
           </section>
 
           <section className="px-8 pb-10 flex-1 space-y-4">
-            {purchases.map((purchase) => (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                <svg className="w-8 h-8 animate-spin text-brand-purple mb-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <p className="text-sm">{"Cargando..."}</p>
+              </div>
+            ) : fetchError ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                <svg className="w-12 h-12 mb-4 text-red-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+                <p className="text-sm">{fetchError}</p>
+              </div>
+            ) : purchases.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+                <p className="text-lg font-medium">{"No tienes compras"}</p>
+              </div>
+            ) : purchases.map((purchase) => (
               <div
                 key={purchase.id}
                 className="bg-brand-sidebar rounded-[1.5rem] p-5 border border-white/5 hover:border-brand-purple/30 transition-all flex items-center gap-6 group"
