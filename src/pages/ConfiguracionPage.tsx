@@ -52,13 +52,17 @@ const footerMetrics = [
 export default function Configuracion({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
+  function onLogout(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
       <header className="sticky top-0 z-10 flex items-center justify-end px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center space-x-6">
           <NotificationDropdown />
           <ShieldDropdown />
-          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 

@@ -141,6 +141,10 @@ export default function OfertaPage({
     </div>
   )
 
+  function onLogout(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <main className="flex-1 flex flex-col overflow-hidden bg-brand-dark">
       {/* Header */}
@@ -192,7 +196,7 @@ export default function OfertaPage({
             </button>
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
-          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 

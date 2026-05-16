@@ -98,6 +98,10 @@ export default function FavoritosPage({ isLoggedIn, onLogin }: { isLoggedIn: boo
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function onLogout(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
       <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-brand-dark/80 backdrop-blur-md border-b border-white/5">
@@ -152,7 +156,7 @@ export default function FavoritosPage({ isLoggedIn, onLogin }: { isLoggedIn: boo
             onToggle={() => setShieldOpen(!shieldOpen)}
           />
 
-          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 

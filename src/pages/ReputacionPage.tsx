@@ -3,7 +3,15 @@ import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
 
-export default function ReputacionPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+export default function ReputacionPage({
+  isLoggedIn,
+  onLogin,
+  onLogout,
+}: {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
+}) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
@@ -28,7 +36,7 @@ export default function ReputacionPage({ isLoggedIn, onLogin }: { isLoggedIn: bo
             </button>
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
-          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
