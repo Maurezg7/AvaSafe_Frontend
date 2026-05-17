@@ -9,8 +9,8 @@ type NavProps = {
 const navPages = [
   "explorer",
   "vender",
-  "offers",
   "compras",
+  "escrow",
   "mensajes",
   "favoritos",
   "disputas",
@@ -30,14 +30,15 @@ const navIcons: Record<(typeof navPages)[number], ReactNode> = {
       <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
     </svg>
   ),
-  offers: (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-    </svg>
-  ),
+
   compras: (
     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  ),
+  escrow: (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
     </svg>
   ),
   mensajes: (
@@ -79,8 +80,9 @@ export default function Nav({ activePage, onNavigate }: NavProps) {
   const navLabels: Record<(typeof navPages)[number], string> = {
     explorer: t.nav.explore,
     vender: t.nav.sell,
-    offers: t.nav.offers,
+
     compras: t.nav.purchases,
+    escrow: t.nav.escrow,
     mensajes: t.nav.messages,
     favoritos: t.nav.favorites,
     disputas: t.nav.disputes,

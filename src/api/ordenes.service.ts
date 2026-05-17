@@ -15,6 +15,10 @@ export interface UpdateOrdeneDto {
   seller?: string;
   nro_pedido?: string;
   state?: OrderState;
+  tradeId?: string;
+  fundTxHash?: string;
+  escrowTxHash?: string;
+  amountAvax?: number;
 }
 
 export interface Orden {
@@ -24,6 +28,9 @@ export interface Orden {
   date_order: string;
   nro_pedido: string;
   state: OrderState;
+  tradeId?: string;
+  fundTxHash?: string;
+  escrowTxHash?: string;
   amountAvax?: number;
 }
 

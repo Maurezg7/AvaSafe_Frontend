@@ -132,12 +132,12 @@ export default function ExplorerPage({
       await ordenesService.create({
         buyer,
         seller: product.seller,
-        nro_pedido: product.nro_pedido || `PED-${product.id_product.slice(0, 8)}-${Date.now()}`,
+        nro_pedido: product.nro_pedido || `PED-${product.id_product}-${Date.now()}`,
         state: "proceso",
         ...(Number.isFinite(amount) && amount > 0 ? { amountAvax: amount } : {}),
       });
 
-      navigate("/compras");
+      navigate(`/ofertas/${product.id_product}`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message;

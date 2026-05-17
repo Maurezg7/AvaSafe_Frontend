@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import UserMenu from "../components/UserMenu";
 import { useLanguage } from "../context/LanguageContext";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import { useProduct } from "../../hooks/useProductos";
-import { useParams } from "react-router-dom";
 import { useMetaMask } from "../../hooks/useMetaMask";
+import { useEscrow } from "../../hooks/useEscrow";
+import { ordenesService } from "../api/ordenes.service";
+import { getBuyerAddress } from "../lib/session";
 
 type Message = {
   id: number;
@@ -44,9 +47,11 @@ export default function OfertaPage({
   onLogout: () => void;
 }) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { id } = useParams()
   const { queryProductById } = useProduct(id)
-  const { isConnected, connectWallet } = useMetaMask();
+  const { isConnected, connectWallet, address: walletAddress } = useMetaMask();
+  const { createTrade, fundTrade, isProcessing: escrowProcessing, error: escrowError } = useEscrow();
   const findProducto = queryProductById.data
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputText, setInputText] = useState("");
@@ -56,7 +61,24 @@ export default function OfertaPage({
   const [shieldOpen, setShieldOpen] = useState(false);
   const [ofertaEnviada, setOfertaEnviada] = useState(false);
   const [ofertaAceptada, setOfertaAceptada] = useState(false);
+  const [escrowStatus, setEscrowStatus] = useState<"idle" | "funding" | "done" | "error">("idle");
+  const [showOfferInput, setShowOfferInput] = useState(false);
+  const [existingOrder, setExistingOrder] = useState<Orden | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!id || !walletAddress) return;
+    ordenesService.findByBuyer(walletAddress).then((res) => {
+      const order = res.data.find((o: Orden) => {
+        const match = o.nro_pedido?.match(/PED(?:IDO)?-([\da-f-]+?)-\d+$/);
+        return match?.[1] === id;
+      });
+      if (order) setExistingOrder(order);
+    }).catch(() => {});
+  }, [id, walletAddress]);
+
+  const isCompletado = existingOrder?.state === "completado";
+  const isEscrow = existingOrder?.state === "escrow";
 
 
   useEffect(() => {
@@ -112,6 +134,14 @@ export default function OfertaPage({
         type: "oferta",
         monto: ofertaMonto,
       },
+      {
+        id: Date.now() + 1,
+        text: `Oferta recibida: ${ofertaMonto} AVAX`,
+        time,
+        sent: false,
+        type: "oferta",
+        monto: ofertaMonto,
+      },
     ]);
     setOfertaEnviada(true);
     setTab("chat");
@@ -132,6 +162,84 @@ export default function OfertaPage({
       },
     ]);
     setOfertaAceptada(true);
+  };
+
+  const sendQuickOferta = async () => {
+    if (!(await ensureCanTransact())) return;
+    if (!ofertaMonto || isNaN(Number(ofertaMonto))) return;
+    const now = new Date();
+    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: `Oferta enviada: ${ofertaMonto} AVAX`,
+        time,
+        sent: true,
+        type: "oferta",
+        monto: ofertaMonto,
+      },
+      {
+        id: Date.now() + 1,
+        text: `Oferta recibida: ${ofertaMonto} AVAX`,
+        time,
+        sent: false,
+        type: "oferta",
+        monto: ofertaMonto,
+      },
+    ]);
+    setOfertaEnviada(true);
+    setShowOfferInput(false);
+    setOfertaMonto("");
+  };
+
+  const handleDirectBuy = async () => {
+    if (!(await ensureCanTransact())) return;
+    if (!findProducto || !walletAddress) return;
+    if (isEscrow || isCompletado) return;
+    setEscrowStatus("funding");
+    try {
+      const tradeId = await createTrade(findProducto.seller, findProducto.id_product);
+      const txHash = await fundTrade(tradeId, String(findProducto.price));
+
+      await ordenesService.create({
+        buyer: walletAddress,
+        seller: findProducto.seller,
+        nro_pedido: `PED-${findProducto.id_product}-${Date.now()}`,
+        state: "escrow",
+        tradeId: String(tradeId),
+        fundTxHash: txHash,
+        amountAvax: parseFloat(String(findProducto.price)),
+      });
+
+      setEscrowStatus("done");
+    } catch {
+      setEscrowStatus("error");
+    }
+  };
+
+  const handlePayEscrow = async () => {
+    if (!findProducto || !walletAddress) return;
+    const amount = ofertaMonto || String(findProducto.price);
+    setEscrowStatus("funding");
+    try {
+      const tradeId = await createTrade(findProducto.seller, findProducto.id_product);
+      const txHash = await fundTrade(tradeId, amount);
+
+      await ordenesService.create({
+        buyer: walletAddress,
+        seller: findProducto.seller,
+        nro_pedido: `PEDIDO-${findProducto.id_product}-${Date.now()}`,
+        state: "escrow",
+        tradeId: String(tradeId),
+        fundTxHash: txHash,
+        amountAvax: parseFloat(amount),
+      });
+
+      setEscrowStatus("done");
+    } catch {
+      setEscrowStatus("error");
+    }
   };
 
     if (queryProductById.isLoading) return (
@@ -365,17 +473,50 @@ export default function OfertaPage({
               </div>
 
               {/* Input chat */}
-              <div className="px-6 py-4 border-t border-white/5">
+              <div className="px-6 py-4 border-t border-white/5 space-y-2">
+                {showOfferInput && (
+                  <div className="flex items-center space-x-2 bg-brand-sidebar rounded-xl border border-brand-purple/30 p-2">
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={ofertaMonto}
+                      onChange={(e) => setOfertaMonto(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-transparent text-sm font-bold text-white rounded-lg focus:outline-none placeholder-gray-700"
+                    />
+                    <span className="text-xs font-bold text-brand-purple">AVAX</span>
+                    <button
+                      onClick={sendQuickOferta}
+                      disabled={!ofertaMonto || isNaN(Number(ofertaMonto))}
+                      className="px-4 py-2 bg-brand-purple hover:bg-brand-purple-hover disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all"
+                    >
+                      Enviar oferta
+                    </button>
+                    <button
+                      onClick={() => { setShowOfferInput(false); setOfertaMonto(""); }}
+                      className="p-2 text-gray-500 hover:text-white transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="flex items-center space-x-3">
-                  <button
-                    onClick={openOfferTab}
-                    className="p-2.5 bg-brand-sidebar border border-white/10 hover:border-brand-purple/40 rounded-xl text-gray-400 hover:text-brand-purple transition-all"
-                    title="{t.oferta.offerTab}"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                    </svg>
-                  </button>
+                  {!isCompletado && (
+                    <button
+                      onClick={() => setShowOfferInput(!showOfferInput)}
+                      className={`p-2.5 rounded-xl transition-all ${
+                        showOfferInput
+                          ? "bg-brand-purple/20 border border-brand-purple/40 text-brand-purple"
+                          : "bg-brand-sidebar border border-white/10 hover:border-brand-purple/40 text-gray-400 hover:text-brand-purple"
+                      }`}
+                      title="Hacer oferta"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                      </svg>
+                    </button>
+                  )}
                   <input
                     type="text"
                     placeholder="Escribe un mensaje..."
@@ -399,7 +540,28 @@ export default function OfertaPage({
 
           {tab === "oferta" && (
             <div className="flex-1 flex flex-col items-center justify-center px-8 space-y-6">
-              <div className="w-full max-w-md space-y-6">
+              {isCompletado ? (
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Transacción completada</h3>
+                  <p className="text-xs text-gray-500">El producto ya fue entregado. No se pueden enviar más ofertas.</p>
+                </div>
+              ) : isEscrow ? (
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Fondos en escrow</h3>
+                  <p className="text-xs text-gray-500">Ya realizaste el pago. Esperá a que el vendedor entregue el producto para confirmar la recepción.</p>
+                </div>
+              ) : (
+                <div className="w-full max-w-md space-y-6">
                 <div className="text-center space-y-1">
                   <h3 className="text-lg font-bold text-white">{t.oferta.offerTab} privada</h3>
                   <p className="text-xs text-gray-500">
@@ -490,6 +652,7 @@ export default function OfertaPage({
                   </button>
                 </div>
               </div>
+              )}
             </div>
           )}
         </div>
@@ -511,25 +674,100 @@ export default function OfertaPage({
           </div>
 
           {/* Botón compra directa */}
-          {!ofertaAceptada && (
+          {(!ofertaAceptada && !isCompletado && !isEscrow) && (
             <button
-              onClick={ensureCanTransact}
-              className="w-full py-3 bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-brand-purple/20 flex items-center justify-center space-x-2"
+              onClick={handleDirectBuy}
+              disabled={escrowProcessing}
+              className="w-full py-3 bg-brand-purple hover:bg-brand-purple-hover disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-brand-purple/20 flex items-center justify-center space-x-2"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-              </svg>
-              <span>Comprar a {findProducto.price} AVAX</span>
+              {escrowProcessing ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Comprando...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                  </svg>
+                  <span>Comprar ahora por {findProducto.price} AVAX</span>
+                </>
+              )}
             </button>
           )}
 
-          {ofertaAceptada && (
-            <button className="w-full py-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2">
+          {isCompletado && (
+            <div className="w-full py-3 bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold rounded-xl flex items-center justify-center space-x-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
-              <span>Confirmar y pagar en escrow</span>
+              <span>Transacción completada</span>
+            </div>
+          )}
+
+          {isEscrow && (
+            <div className="w-full py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-bold rounded-xl flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              <span>Fondos en escrow</span>
+            </div>
+          )}
+
+          {ofertaAceptada && escrowStatus === "idle" && (
+            <button
+              onClick={handlePayEscrow}
+              disabled={escrowProcessing}
+              className="w-full py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2"
+            >
+              {escrowProcessing ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Depositando en escrow...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                  <span>Confirmar y pagar en escrow ({ofertaMonto || findProducto.price} AVAX)</span>
+                </>
+              )}
             </button>
+          )}
+
+          {escrowStatus === "funding" && (
+            <div className="w-full py-3 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs font-bold rounded-xl flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span>Esperando confirmación en la blockchain...</span>
+            </div>
+          )}
+
+          {escrowStatus === "done" && (
+            <button
+              onClick={() => navigate("/compras")}
+              className="w-full py-3 bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-bold rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fillRule="evenodd" />
+              </svg>
+              <span>Ver mis compras</span>
+            </button>
+          )}
+
+          {escrowStatus === "error" && escrowError && (
+            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2 text-center">
+              {escrowError}
+            </p>
           )}
 
           {/* Reportar */}

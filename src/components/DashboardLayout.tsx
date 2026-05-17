@@ -4,8 +4,8 @@ import Nav from "./Nav";
 const pageToPath: Record<string, string> = {
   explorer: "/",
   vender: "/vender",
-  offers: "/ofertas",
   compras: "/compras",
+  escrow: "/escrow",
   mensajes: "/mensajes",
   favoritos: "/favoritos",
   disputas: "/disputas",
@@ -17,8 +17,8 @@ const pageToPath: Record<string, string> = {
 const pathToPage: Record<string, string> = {
   "/": "explorer",
   "/vender": "vender",
-  "/ofertas": "offers",
   "/compras": "compras",
+  "/escrow": "escrow",
   "/mensajes": "mensajes",
   "/favoritos": "favoritos",
   "/disputas": "disputas",

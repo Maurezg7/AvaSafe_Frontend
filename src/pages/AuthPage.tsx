@@ -11,7 +11,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: () => void 
 
 function WalletConnectView({ onAuthSuccess }: { onAuthSuccess: () => void }) {
   const { t } = useLanguage();
-  const { address, isAuthenticating, error, connectAndAuth } = useWalletAuth();
+  const { isAuthenticating, error, connectAndAuth } = useWalletAuth();
 
   const handleConnect = async () => {
     try {
@@ -75,13 +75,6 @@ function WalletConnectView({ onAuthSuccess }: { onAuthSuccess: () => void }) {
         <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2 text-center">
           {error}
         </p>
-      )}
-
-      {address && (
-        <div className="flex items-center justify-center space-x-2 text-[11px] text-gray-500">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="font-mono">{address.slice(0, 6)}...{address.slice(-4)}</span>
-        </div>
       )}
 
       <p className="text-[9px] text-gray-600 text-center">{t.auth.noPassword}</p>

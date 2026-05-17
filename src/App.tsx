@@ -2,7 +2,6 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ExplorerPage from "./pages/ExplorerPage";
-import OffersPage from "./pages/OffersPage";
 import ComprasPage from "./pages/ComprasPage";
 import MensajesPage from "./pages/MensajesPage";
 import FavoritosPage from "./pages/FavoritosPage";
@@ -14,6 +13,7 @@ import VenderPage from "./pages/VenderPage";
 import LoginPage from "./pages/LoginPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import OfertaPage from "./pages/OfertaPage";
+import EscrowPage from "./pages/EscrowPage";
 import { clearSession } from "./lib/session";
 import { LanguageProvider } from "./context/LanguageContext";
 
@@ -46,8 +46,8 @@ function AppRoutes() {
         <Route path="vender" element={<VenderPage {...routeProps} />} />
         <Route path="oferta/:id" element={<OfertaPage {...routeProps} />} />
         <Route path="ofertas/:id" element={<OfertaPage {...routeProps} />} />
-        <Route path="ofertas" element={<OffersPage {...routeProps} />} />
         <Route path="compras" element={<ComprasPage {...routeProps} />} />
+        <Route path="escrow" element={<EscrowPage {...routeProps} />} />
         <Route path="mensajes" element={<MensajesPage {...routeProps} />} />
         <Route path="favoritos" element={<FavoritosPage {...routeProps} />} />
         <Route path="disputas" element={<DisputasPage {...routeProps} />} />

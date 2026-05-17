@@ -6,6 +6,7 @@ import { walletAuthAction } from "../../actions/authActions/walletAuth.action";
 import { signMessage } from "@wagmi/core";
 import { wagmiAdapter } from "../lib/appkit";
 import { getNonce } from "../../actions/authActions/walletAuth.action";
+import { useDisconnect } from "@reown/appkit/react";
 
 export interface User {
   address: string;
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(getToken());
+  const { disconnect } = useDisconnect();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,12 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    disconnect();
     clearSession();
     setToken(null);
     setUser(null);
     authAPI.post("/usuarios/logout").catch(() => {});
     navigate("/login");
-  }, [navigate]);
+  }, [navigate, disconnect]);
 
   return (
     <AuthContext.Provider value={{ user, token, isLoggedIn: !!token && !!user, loading, authenticateWithWallet, logout }}>

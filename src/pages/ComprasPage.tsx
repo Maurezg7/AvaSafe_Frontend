@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
@@ -6,9 +7,13 @@ import { ordenesService, type Orden } from "../api/ordenes.service";
 import { getBuyerAddress } from "../lib/session";
 import { useLanguage } from "../context/LanguageContext";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import { useEscrow } from "../../hooks/useEscrow";
+import { getProductById } from "../../actions/productosActions/get-product-by-id.action";
 
 type Purchase = {
-  id: number;
+  id_order: string;
+  tradeId?: string;
+  productId?: string;
   name: string;
   description: string;
   seller: string;
@@ -55,40 +60,88 @@ export default function ComprasPage({
   onLogout: () => void;
 }) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const buyerAddress = getBuyerAddress();
+  const { confirmDelivery, isProcessing: escrowProcessing } = useEscrow();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const estadoRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const handleConfirmDelivery = async (purchase: Purchase) => {
+    if (!purchase.tradeId) return;
+    setConfirmingId(purchase.id_order);
+    try {
+      await confirmDelivery(Number(purchase.tradeId));
+      await ordenesService.update(purchase.id_order, { state: "completado" });
+      setPurchases((prev) =>
+        prev.map((p) =>
+          p.id_order === purchase.id_order
+            ? { ...p, status: "Completada", progress: 100 }
+            : p
+        )
+      );
+    } catch {
+      // error handled by hook
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  const loadPurchases = async () => {
     if (!buyerAddress) {
       setLoading(false);
       return;
     }
-    ordenesService.findByBuyer(buyerAddress)
-      .then((res) => {
-        const mapped = res.data.map((o: Orden, i: number) => ({
-          id: i + 1,
-          name: o.nro_pedido || `Orden #${o.id_order.slice(0, 8)}`,
-          description: `${o.amountAvax ? o.amountAvax + " AVAX" : ""}`,
-          seller: o.seller,
-          rating: "0.0",
-          reviews: 0,
-          time: new Date(o.date_order).toLocaleDateString(),
-          price: o.amountAvax ? `${o.amountAvax} AVAX` : "—",
-          usd: "",
-          image: "",
-          status: statusMap[o.state] || "En Proceso",
-          progress: progressMap[o.state] || 25,
-        }));
-        setPurchases(mapped);
-      })
-      .catch((err) => setFetchError(err?.message || t.compras.loadError))
-      .finally(() => setLoading(false));
+    try {
+      const res = await ordenesService.findByBuyer(buyerAddress);
+      const mapped = await Promise.all(
+        res.data.map(async (o: Orden) => {
+          const match = o.nro_pedido?.match(/PED(?:IDO)?-([\da-f-]+?)-\d+$/);
+          const productId = match?.[1];
+          let productName = o.nro_pedido || `Orden #${o.id_order.slice(0, 8)}`;
+          let productImage = "";
+          if (productId) {
+            try {
+              const prod = await getProductById(productId);
+              if (prod) {
+                productName = prod.name;
+                productImage = prod.image_url || "";
+              }
+            } catch {}
+          }
+          return {
+            id_order: o.id_order,
+            tradeId: o.tradeId,
+            productId,
+            name: productName,
+            description: `${o.amountAvax ? o.amountAvax + " AVAX" : ""}`,
+            seller: o.seller,
+            rating: "0.0",
+            reviews: 0,
+            time: new Date(o.date_order).toLocaleDateString(),
+            price: o.amountAvax ? `${o.amountAvax} AVAX` : "—",
+            usd: "",
+            image: productImage,
+            status: statusMap[o.state] || "En Proceso",
+            progress: progressMap[o.state] || 25,
+          };
+        })
+      );
+      setPurchases(mapped);
+    } catch (err) {
+      setFetchError(err?.message || t.compras.loadError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPurchases();
   }, [buyerAddress, t.compras.loadError]);
 
   useEffect(() => {
@@ -205,7 +258,7 @@ export default function ComprasPage({
               </div>
             ) : purchases.map((purchase) => (
               <div
-                key={purchase.id}
+                key={purchase.id_order}
                 className="bg-brand-sidebar rounded-[1.5rem] p-5 border border-white/5 hover:border-brand-purple/30 transition-all flex items-center gap-6 group"
               >
                 <div className="w-24 h-24 rounded-xl bg-brand-dark overflow-hidden flex items-center justify-center p-3 flex-shrink-0">
@@ -268,7 +321,34 @@ export default function ComprasPage({
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <span className="text-base font-bold text-brand-purple">{purchase.price}</span>
                   <span className="text-[9px] text-gray-500">≈ {purchase.usd}</span>
-                  <button className="mt-1 px-4 py-1.5 border border-brand-purple/30 text-brand-purple rounded-lg text-[10px] font-semibold hover:bg-brand-purple/10 transition-all">
+                  {purchase.status === "En Escrow" && (
+                    <button
+                      onClick={() => handleConfirmDelivery(purchase)}
+                      disabled={confirmingId === purchase.id_order}
+                      className="mt-1 px-4 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg text-[10px] font-semibold transition-all flex items-center space-x-1"
+                    >
+                      {confirmingId === purchase.id_order ? (
+                        <>
+                          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          <span>Confirmando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                          </svg>
+                          <span>Confirmar recepción</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => purchase.productId && navigate(`/ofertas/${purchase.productId}`)}
+                    className="mt-1 px-4 py-1.5 border border-brand-purple/30 text-brand-purple rounded-lg text-[10px] font-semibold hover:bg-brand-purple/10 transition-all"
+                  >
                     {t.common.viewDetails}
                   </button>
                 </div>

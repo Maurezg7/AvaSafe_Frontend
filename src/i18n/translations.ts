@@ -15,6 +15,7 @@ export const translations = {
       support: "Soporte",
       settings: "Configuración",
       sell: "Vender",
+      escrow: "Pagos",
       safePurchase: "Compra Segura",
       safePurchaseBody:
         "Todas las transacciones están protegidas con escrow descentralizado y cifrado de extremo a extremo.",
@@ -336,6 +337,7 @@ export const translations = {
       support: "Support",
       settings: "Settings",
       sell: "Sell",
+      escrow: "Escrow",
       safePurchase: "Safe Purchase",
       safePurchaseBody:
         "All transactions are protected with decentralized escrow and end-to-end encryption.",
