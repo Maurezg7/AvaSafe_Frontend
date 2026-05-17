@@ -14,11 +14,11 @@ const getStoredUsername = () => {
 export default function UserMenu({
   isLoggedIn,
   onLogin,
-  onLogout,
+  onLogout = () => {},
 }: {
   isLoggedIn: boolean;
   onLogin: () => void;
-  onLogout: () => void;
+  onLogout?: () => void;
 }) {
   const { address, isConnected, isConnecting, connectWallet } = useMetaMask();
   const username = getStoredUsername();

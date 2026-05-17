@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { usuariosService } from "../api/usuarios.service";
+import { loginAction } from "../../actions/authActions/login.action";
+import { registerAction } from "../../actions/authActions/register.action";
+import { authAPI } from "../../api/auth.api";
+import { clearSession, getStoredUser, getToken, persistSession } from "../lib/session";
 
 export interface User {
   address: string;
@@ -25,41 +28,57 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(getToken());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
+    const stored = getStoredUser();
     if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem("user");
-      }
+      setUser({
+        address: stored.address ?? "",
+        username: stored.username ?? stored.name ?? "Usuario",
+        email: stored.email ?? "",
+        role: [],
+        created_at: "",
+      });
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await usuariosService.login({ email, password });
-    const { usuario, token: jwt } = res.data;
-    localStorage.setItem("token", jwt);
-    localStorage.setItem("user", JSON.stringify(usuario));
+    const data = await loginAction({ email, password });
+    const jwt = data.token;
+    if (!jwt) throw new Error("No se recibió token del servidor");
+    persistSession({
+      token: jwt,
+      username: data.usuario ?? data.username,
+      email: data.email,
+    });
+    const stored = getStoredUser();
     setToken(jwt);
-    setUser(usuario);
+    setUser(
+      stored
+        ? {
+            address: stored.address ?? "",
+            username: stored.username ?? "Usuario",
+            email: stored.email ?? "",
+            role: [],
+            created_at: "",
+          }
+        : null,
+    );
   };
 
   const register = async (data: { address: string; username: string; email: string; password: string }) => {
-    await usuariosService.create(data);
+    await registerAction(data);
     await login(data.email, data.password);
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearSession();
     setToken(null);
     setUser(null);
-    usuariosService.logout().catch(() => {});
+    authAPI.post("/usuarios/logout").catch(() => {});
     navigate("/login");
   };
 

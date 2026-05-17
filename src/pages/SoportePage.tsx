@@ -3,13 +3,10 @@ import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
 
-export default function SoportePage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+export default function SoportePage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
-  function onLogout(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">

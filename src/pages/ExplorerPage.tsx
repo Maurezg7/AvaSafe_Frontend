@@ -1,37 +1,14 @@
+import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
-<<<<<<< HEAD
-import { useProduct } from '../../hooks/useProductos';
+import { useProduct } from "../../hooks/useProductos";
 import type { ProductoInterface } from "../interfaces/producto.interface";
 import { useNavigate } from "react-router-dom";
 import { useMetaMask } from "../../hooks/useMetaMask";
-=======
-import { productosService, type Producto } from "../api/productos.service";
 import { ordenesService } from "../api/ordenes.service";
-import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
->>>>>>> e4b2f40 (Version 0.0.4)
-
-type Product = {
-  id: number;
-  badge?: string;
-  name: string;
-  description: string;
-  seller: string;
-  rating: string;
-  reviews: number;
-  time: string;
-  price: string;
-  usd: string;
-  image: string;
-  category: string;
-  subcategory: string;
-  condition: "Nuevo" | "Usado";
-  location: string;
-  sellerVerified: boolean;
-};
+import { getBuyerAddress } from "../lib/session";
 
 type Filters = {
   category: string;
@@ -79,110 +56,19 @@ const categories = [
   },
 ];
 
-const products: Product[] = [
-  {
-    id: 1,
-    badge: "Nuevo",
-    name: 'MacBook Pro 16" M3 Max',
-    description: "64GB RAM - 2TB SSD",
-    seller: "TechSeller",
-    rating: "4.9",
-    reviews: 128,
-    time: "Hoy",
-    price: "2.85 AVAX",
-    usd: "$2,184.25 USD",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuABOYQ0Ho6iHKTUbl2XWdSt3biQb6FN27ZWN9OGa6mMK7dv15Zl93muCEz-5ZX9NO1Cfh5ZveLEBfZmYSSq2Y1ugZCY8cdh2Oy-dW0hKuVQdELQ99tMLiCdiittxp4P0njek5vLG2LvBhk9an6CNCjzB_OXtUWWt5V1tPILBVi__bAAOBueWu1v3oH8LVTRin-DyRMckQn-VHOe6swU2QnbzkgPhnVJ3i8f0h1a2dXsWXrg2h5XrPtkcjfSDT8hatxsNcr_E78_g0Iq",
-    category: "Electrónica",
-    subcategory: "Computadoras y Laptops",
-    condition: "Nuevo",
-    location: "Buenos Aires",
-    sellerVerified: true,
-  },
-  {
-    id: 2,
-    badge: "Popular",
-    name: "Iphone 16 Pro Max",
-    description: "8GB RAM - 1TB SSD",
-    seller: "LuxTime",
-    rating: "5.0",
-    reviews: 89,
-    time: "Ayer",
-    price: "9.57 AVAX",
-    usd: "$7,469.25 USD",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCF1Bksx3KtVTnSUfL7L2ATzAExSa8RAMYtFcXnEOWnpFGBOycBnEDloiFXbj2S9FLvfVHiWzHqYJdkVvnUxGDEN0eZrJOW6psFuxuqBXnuyjRC_1LvFl6DWY79IbL_I1xSX20aeqCEuDJn94R5Ltk4zUVjPo1eJEE_CVfOhtpB9k7hUqu3YGrYIzO-tS3FbBrDH4SEx9obSZFfPkrue0XcZSeHJZgwcZ95DU9s0okjX1-W0guuuE-59cdbRb6Pxvs23xRz9mrCXAm9",
-    category: "Electrónica",
-    subcategory: "Celulares y Smartphones",
-    condition: "Nuevo",
-    location: "Ciudad de México",
-    sellerVerified: true,
-  },
-  {
-    id: 3,
-    badge: "Oferta",
-    name: "Rolex Daytona",
-    description: "Oystersteel - Black Dial",
-    seller: "CryptoGear",
-    rating: "4.8",
-    reviews: 76,
-    time: "2d",
-    price: "1.25 AVAX",
-    usd: "$957.75 USD",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBHCQA5bEVdqGEZVCh2ZF5aW-J8af47d4ZtDUYElK4XzQr9ST8ygaCiInCgD7wu524H70YSW7uLS5PzNxycQ15USYLzp4WBFA1SqCfXOr5bHI3_28Rv-pfKGFA5zat4lw3AkuV-NMcX4ufaIMTe0xhU6OubH7ytQf8qaSOPDgxrOv6Mr_qD6Ytv_IYxu-u1KL_gcM7fif-YbXBsfRxvr_sLrzlPn0X-KGPgzk_vaXhC9M0m_70ca97ZkNTl9BLhAaKf9C0szisJpKJg",
-    category: "Moda",
-    subcategory: "Relojes y Joyería",
-    condition: "Usado",
-    location: "Madrid",
-    sellerVerified: false,
-  },
-  {
-    id: 4,
-    name: "Ipad Pro 11",
-    description: "64GB RAM - 1TB SSD",
-    seller: "SwissWatch",
-    rating: "4.9",
-    reviews: 56,
-    time: "3d",
-    price: "18.50 AVAX",
-    usd: "$14,209.50 USD",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhCHKKB8ofzt9xC2APBHpxOTwL5mo2YQdi2uBoNgCIMh5dUgVBH1h5JCHyW1MKHs0JxJn30qHQ4um5bAIc3sKfzxfThrevrktXCzWI7W7gAfziDYxM7RJJfLz1CiLNCkghaGkZ2AmKWUra9WT8ayLB8Cwd2_uyRlJC07ryj6zRFa_DLTgakD1UctCW8WlHiFrLQpmjj9rsKVXFWxPcxj6dLdGD3OtODdvHS9RZkRQT9IP7IyzzNo9ee533ZUHGksOZk-6PKichQuZD",
-    category: "Electrónica",
-    subcategory: "Tablets y Accesorios",
-    condition: "Nuevo",
-    location: "Bogotá",
-    sellerVerified: true,
-  },
-];
-
-export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
-<<<<<<< HEAD
+export default function ExplorerPage({
+  isLoggedIn,
+  onLogin,
+  onLogout,
+}: {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
+}) {
   const navigate = useNavigate();
-  const { isConnected, connectWallet } = useMetaMask();
-  const {queryProductos}=useProduct()
-  const data=queryProductos.data ?? []
-=======
-  const { t } = useLanguage();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const handleBuy = async (sellerAddress: string) => {
-    if (!isLoggedIn || !user) {
-      onLogin();
-      return;
-    }
-    try {
-      const nro_pedido = `PED-${Date.now()}`;
-      await ordenesService.create({
-        buyer: user.address,
-        seller: sellerAddress,
-        nro_pedido,
-        state: "proceso",
-      });
-      navigate("/compras");
-    } catch {
-      alert("Error al crear la orden");
-    }
-  };
->>>>>>> e4b2f40 (Version 0.0.4)
+  const { address, isConnected, connectWallet } = useMetaMask();
+  const { queryProductos } = useProduct();
+  const data = queryProductos.data ?? [];
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -206,8 +92,61 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
     rating: false,
   });
   const [shieldOpen, setShieldOpen] = useState(false);
+  const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const categoryRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
+
+  const resolveBuyerAddress = async (): Promise<string | null> => {
+    const fromSession = getBuyerAddress();
+    if (fromSession) return fromSession;
+    if (address) return address;
+    try {
+      return await connectWallet();
+    } catch {
+      return null;
+    }
+  };
+
+  const handleBuy = async (product: ProductoInterface) => {
+    if (!isLoggedIn) {
+      onLogin();
+      return;
+    }
+
+    let buyer: string | null = null;
+    try {
+      setBuyingProductId(product.id_product);
+      buyer = await resolveBuyerAddress();
+      if (!buyer) {
+        alert("Conecta MetaMask o inicia sesión con una cuenta que tenga dirección de wallet.");
+        return;
+      }
+
+      const amount = typeof product.price === "number"
+        ? product.price
+        : parseFloat(String(product.price));
+
+      await ordenesService.create({
+        buyer,
+        seller: product.seller,
+        nro_pedido: product.nro_pedido || `PED-${product.id_product.slice(0, 8)}-${Date.now()}`,
+        state: "proceso",
+        ...(Number.isFinite(amount) && amount > 0 ? { amountAvax: amount } : {}),
+      });
+
+      navigate("/compras");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message;
+        const text = Array.isArray(message) ? message.join(". ") : message;
+        alert(typeof text === "string" ? text : "No se pudo crear la orden.");
+      } else {
+        alert("No se pudo crear la orden. Intenta de nuevo.");
+      }
+    } finally {
+      setBuyingProductId(null);
+    }
+  };
 
   const goToOffer = async (productId: string | number) => {
     if (!isLoggedIn) {
@@ -279,27 +218,6 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
     setSelectedSubcategory("");
   };
 
-  const parsePrice = (p: string) => {
-    const n = p.replace(" AVAX", "");
-    return parseFloat(n.replace(",", "."));
-  };
-
-  const filteredProducts = products.filter((p) => {
-    const cat = filters.category || selectedCategory;
-    const sub = filters.subcategory || selectedSubcategory;
-    if (cat && p.category !== cat) return false;
-    if (sub && p.subcategory !== sub) return false;
-    if (filters.condition.length > 0 && !filters.condition.includes(p.condition)) return false;
-    if (filters.priceMin && parsePrice(p.price) < parseFloat(filters.priceMin)) return false;
-    if (filters.priceMax && parsePrice(p.price) > parseFloat(filters.priceMax)) return false;
-    if (filters.location && !p.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
-    if (filters.sellerType.length > 0) {
-      if (filters.sellerType.includes("Verificado") && !p.sellerVerified) return false;
-      if (filters.sellerType.includes("No verificado") && p.sellerVerified) return false;
-    }
-    if (filters.minRating > 0 && parseFloat(p.rating) < filters.minRating) return false;
-    return true;
-  });
 
   const selectedCatObj = categories.find((c) => c.name === (selectedCategory || filters.category));
   const activeLabel = selectedSubcategory || selectedCategory || "Todas las categorías";
@@ -560,7 +478,7 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
 
-          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} />
+          <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
@@ -573,7 +491,7 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
       <section className="px-8 pb-10">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">Productos Destacados</h2>
-          <span className="text-xs text-gray-500">{filteredProducts.length} resultados</span>
+          <span className="text-xs text-gray-500">{data.length} resultados</span>
         </div>
         {/* Agregado de leo , pedir productos al backend */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -596,67 +514,12 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
                   </div>
                 )} */}
 
-<<<<<<< HEAD
                 <div className="aspect-square rounded-2xl bg-brand-dark overflow-hidden mb-4 flex items-center justify-center p-4">
                   <img
-                    src={product.image_url}
+                    src={product.image_url || "https://via.placeholder.com/400?text=Producto"}
                     alt={product.name}
                     className="object-contain transform group-hover:scale-110 transition-transform duration-500"
                   />
-=======
-                  <div className="flex items-center space-x-1 text-[10px] text-gray-500 mb-2">
-                    <div className="flex items-center text-brand-purple">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="ml-1 font-bold">{product.rating}</span>
-                      <span className="text-gray-500 ml-0.5">({product.reviews})</span>
-                    </div>
-                    <span>•</span>
-                    <span>{product.time}</span>
-                    <span>•</span>
-                    <span>{product.location}</span>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-white mb-0.5">{product.name}</h3>
-                  <p className="text-[10px] text-gray-500 mb-4">{product.description}</p>
-
-                  <div className="mt-auto">
-                    <div className="flex flex-col mb-4">
-                      <span className="text-lg font-bold text-brand-purple">{product.price}</span>
-                      <span className="text-[10px] text-gray-500">≈ {product.usd}</span>
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleBuy(product.seller)}
-                        className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                        </svg>
-                        <span>Comprar ahora</span>
-                      </button>
-                      <button
-                        onClick={() => navigate("/mensajes", { state: { seller: product.seller, productName: product.name } })}
-                        className="flex-1 py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
-                      >
-                        <span>{t.explorer.makePrivateOffer}</span>
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              )) : (
-                <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
-                  <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                  </svg>
-                  <p className="text-lg font-medium">{t.explorer.noResults}</p>
-                  <p className="text-sm mt-1">{t.explorer.noResultsHint}</p>
->>>>>>> e4b2f40 (Version 0.0.4)
                 </div>
 
                 <div className="flex items-center justify-between mb-3">
@@ -703,109 +566,29 @@ export default function ExplorerPage({ isLoggedIn, onLogin }: { isLoggedIn: bool
                     {/* <span className="text-[10px] text-gray-500">≈ {product.usd}</span> */}
                   </div>
 
-                  <button
-                    onClick={() => goToOffer(product.id_product)}
-                    className="w-full py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
-                  >
-                    <span>Hacer oferta privada</span>
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </article>
-            )) : (
-              <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
-                <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-                <p className="text-lg font-medium">No hay productos con estos filtros</p>
-                <p className="text-sm mt-1">Prueba ajustando o limpiando los filtros aplicados</p>
-              </div>
-            )}
-          </div>
-        {/* Fin del agregado */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.length > 0 ? filteredProducts.map((product) => (
-              <article
-                key={product.id}
-                className="bg-brand-sidebar rounded-[2rem] p-5 flex flex-col border border-white/5 relative group hover:border-brand-purple/40 transition-all"
-              >
-                <button className="absolute top-6 left-6 p-2 bg-brand-dark/40 rounded-full text-white/80 hover:text-brand-purple transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                  </svg>
-                </button>
-
-                {product.badge && (
-                  <div className="absolute top-6 right-6">
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-brand-purple rounded-md shadow-lg shadow-brand-purple/20">
-                      {product.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div className="aspect-square rounded-2xl bg-brand-dark overflow-hidden mb-4 flex items-center justify-center p-4">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="object-contain transform group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src="https://i.pravatar.cc/50"
-                      alt={product.seller}
-                      className="w-6 h-6 rounded-full border border-brand-purple/30"
-                    />
-                    <span className="text-xs font-medium text-gray-200">{product.seller}</span>
-                    {product.sellerVerified && (
-                      <svg className="w-3.5 h-3.5 text-brand-purple" fill="currentColor" viewBox="0 0 20 20">
-                        <path clipRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd" />
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      disabled={buyingProductId === product.id_product}
+                      onClick={() => handleBuy(product)}
+                      className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                       </svg>
-                    )}
+                      <span>{buyingProductId === product.id_product ? "Procesando..." : "Comprar ahora"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => goToOffer(product.id_product)}
+                      className="flex-1 py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
+                    >
+                      <span>Oferta</span>
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
-                    product.condition === "Nuevo" ? "bg-green-900/40 text-green-400" : "bg-yellow-900/40 text-yellow-400"
-                  }`}>
-                    {product.condition}
-                  </span>
-                </div>
-
-                <div className="flex items-center space-x-1 text-[10px] text-gray-500 mb-2">
-                  <div className="flex items-center text-brand-purple">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="ml-1 font-bold">{product.rating}</span>
-                    <span className="text-gray-500 ml-0.5">({product.reviews})</span>
-                  </div>
-                  <span>•</span>
-                  <span>{product.time}</span>
-                  <span>•</span>
-                  <span>{product.location}</span>
-                </div>
-
-                <h3 className="text-sm font-bold text-white mb-0.5">{product.name}</h3>
-                <p className="text-[10px] text-gray-500 mb-4">{product.description}</p>
-
-                <div className="mt-auto">
-                  <div className="flex flex-col mb-4">
-                    <span className="text-lg font-bold text-brand-purple">{product.price}</span>
-                    <span className="text-[10px] text-gray-500">≈ {product.usd}</span>
-                  </div>
-
-                  <button
-                    onClick={() => goToOffer(product.id)}
-                    className="w-full py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
-                  >
-                    <span>Hacer oferta privada</span>
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
-                    </svg>
-                  </button>
                 </div>
               </article>
             )) : (

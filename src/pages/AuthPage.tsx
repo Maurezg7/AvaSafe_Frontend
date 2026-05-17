@@ -5,6 +5,7 @@ import { loginAction } from "../../actions/authActions/login.action";
 import { registerAction } from "../../actions/authActions/register.action";
 import { useMetaMask } from "../../hooks/useMetaMask";
 import type { AuthResponse } from "../interfaces/auth.interface";
+import { persistSession } from "../lib/session";
 
 type AuthMode = "login" | "register";
 
@@ -40,13 +41,13 @@ function getAuthError(error: unknown) {
 
 function saveSession(data: AuthResponse) {
   const token = data.token || data.access_token;
-  if (token) localStorage.setItem("avasafe_token", token);
-  const user = data.user ?? {
-    username: data.usuario || data.username,
-    email: data.email,
-    address: data.address,
-  };
-  localStorage.setItem("avasafe_user", JSON.stringify(user));
+  if (!token) return;
+  persistSession({
+    token,
+    username: data.user?.username ?? data.usuario ?? data.username,
+    email: data.user?.email ?? data.email,
+    address: data.user?.address ?? data.address,
+  });
 }
 
 function LoginView({

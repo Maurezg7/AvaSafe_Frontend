@@ -1,4 +1,4 @@
-import api from "./axios";
+import apiClient from "../../api/client";
 
 export type OrderState = "escrow" | "proceso" | "cancelado" | "completado";
 
@@ -7,6 +7,7 @@ export interface CreateOrdenDto {
   seller: string;
   nro_pedido: string;
   state?: OrderState;
+  amountAvax?: number;
 }
 
 export interface UpdateOrdeneDto {
@@ -27,12 +28,27 @@ export interface Orden {
 }
 
 export const ordenesService = {
-  create: (data: CreateOrdenDto) => api.post<Orden>("/ordenes", data),
-  findAll: () => api.get<Orden[]>("/ordenes"),
-  findByBuyer: (address: string) => api.get<Orden[]>(`/ordenes/buyer/${address}`),
-  findBySeller: (address: string) => api.get<Orden[]>(`/ordenes/seller/${address}`),
-  findOne: (id: string) => api.get<Orden>(`/ordenes/${id}`),
+  create: (data: CreateOrdenDto) => apiClient.post<Orden>("/ordenes", data),
+  findAll: () => apiClient.get<Orden[]>("/ordenes"),
+  /** El backend expone GET /ordenes; filtramos por comprador en el cliente. */
+  findByBuyer: async (address: string) => {
+    const res = await apiClient.get<Orden[]>("/ordenes");
+    const normalized = address.toLowerCase();
+    return {
+      ...res,
+      data: res.data.filter((o) => o.buyer.toLowerCase() === normalized),
+    };
+  },
+  findBySeller: async (address: string) => {
+    const res = await apiClient.get<Orden[]>("/ordenes");
+    const normalized = address.toLowerCase();
+    return {
+      ...res,
+      data: res.data.filter((o) => o.seller.toLowerCase() === normalized),
+    };
+  },
+  findOne: (id: string) => apiClient.get<Orden>(`/ordenes/${id}`),
   update: (id: string, data: UpdateOrdeneDto) =>
-    api.patch<Orden>(`/ordenes/${id}`, data),
-  remove: (id: string) => api.delete(`/ordenes/${id}`),
+    apiClient.patch<Orden>(`/ordenes/${id}`, data),
+  remove: (id: string) => apiClient.delete(`/ordenes/${id}`),
 };

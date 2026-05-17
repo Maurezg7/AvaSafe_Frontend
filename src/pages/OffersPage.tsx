@@ -85,7 +85,7 @@ const offers: Offer[] = [
   },
 ];
 
-export default function OffersPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+export default function OffersPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
@@ -102,9 +102,6 @@ export default function OffersPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function onLogout(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">

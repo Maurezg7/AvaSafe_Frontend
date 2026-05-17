@@ -2,12 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
-<<<<<<< HEAD
-=======
-import { useLanguage } from "../context/LanguageContext";
-import { useAuth } from "../context/AuthContext";
 import { ordenesService, type Orden } from "../api/ordenes.service";
->>>>>>> e4b2f40 (Version 0.0.4)
+import { getBuyerAddress } from "../lib/session";
 
 type Purchase = {
   id: number;
@@ -47,12 +43,16 @@ const statusColors: Record<string, string> = {
 
 type Tab = "Todas" | "En Proceso" | "En Escrow" | "Completadas" | "Canceladas";
 
-export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
-<<<<<<< HEAD
-=======
-  const { t } = useLanguage();
-  const { user } = useAuth();
->>>>>>> e4b2f40 (Version 0.0.4)
+export default function ComprasPage({
+  isLoggedIn,
+  onLogin,
+  onLogout,
+}: {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
+}) {
+  const buyerAddress = getBuyerAddress();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
@@ -62,11 +62,11 @@ export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boole
   const estadoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user?.address) {
+    if (!buyerAddress) {
       setLoading(false);
       return;
     }
-    ordenesService.findByBuyer(user.address)
+    ordenesService.findByBuyer(buyerAddress)
       .then((res) => {
         const mapped = res.data.map((o: Orden, i: number) => ({
           id: i + 1,
@@ -86,7 +86,7 @@ export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boole
       })
       .catch((err) => setFetchError(err?.message || "Error al cargar compras"))
       .finally(() => setLoading(false));
-  }, [user?.address, t]);
+  }, [buyerAddress]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -97,10 +97,6 @@ export default function ComprasPage({ isLoggedIn, onLogin }: { isLoggedIn: boole
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  function onLogout(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">

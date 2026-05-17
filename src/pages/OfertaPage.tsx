@@ -35,9 +35,11 @@ const initialMessages: Message[] = [
 export default function OfertaPage({
   isLoggedIn,
   onLogin,
+  onLogout,
 }: {
   isLoggedIn: boolean;
   onLogin: () => void;
+  onLogout: () => void;
 }) {
   const { id } = useParams()
   const { queryProductById } = useProduct(id)
@@ -140,10 +142,6 @@ export default function OfertaPage({
       <p className="text-gray-500 text-sm">Producto no encontrado.</p>
     </div>
   )
-
-  function onLogout(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <main className="flex-1 flex flex-col overflow-hidden bg-brand-dark">
@@ -433,7 +431,7 @@ export default function OfertaPage({
                   <div className="flex space-x-2">
                     {["-10%", "-15%", "-20%"].map((pct) => {
                       const factor = 1 + parseInt(pct) / 100;
-                      const sugerido = (parseFloat(findProducto.price) * factor).toFixed(2);
+                      const sugerido = (parseFloat(String(findProducto.price)) * factor).toFixed(2);
                       return (
                         <button
                           key={pct}

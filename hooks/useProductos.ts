@@ -1,11 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { getAllProductsAction } from "../actions/productosActions/get-all-products.action"
 import type { ProductoInterface } from '../src/interfaces/producto.interface';
 import { getProductById } from '../actions/productosActions/get-product-by-id.action';
 
 
 export const useProduct=(product_id?:string)=>{
-    const queryClient=useQueryClient()
     const queryProductos=useQuery<ProductoInterface[]>({
         queryKey:["productos"],
         queryFn:getAllProductsAction,

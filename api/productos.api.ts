@@ -1,15 +1,8 @@
-import axios from 'axios';
+import apiClient from "./client";
 
-const API_URL=import.meta.env.VITE_API_URL
-console.log(import.meta.env.VITE_API_URL) // ¿Imprime la URL o undefined?
-console.log(import.meta.env)
-
-export const productosAPI=axios.create({
-    baseURL:`${API_URL}/productos`
-})
-
-productosAPI.interceptors.request.use((config) => {
-    const token = localStorage.getItem("avasafe_token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-});
+export const productosAPI = {
+  get: <T>(url: string) => apiClient.get<T>(`/productos${url}`),
+  post: <T>(url: string, body?: unknown) => apiClient.post<T>(`/productos${url}`, body),
+  patch: <T>(url: string, body?: unknown) => apiClient.patch<T>(`/productos${url}`, body),
+  delete: <T>(url: string) => apiClient.delete<T>(`/productos${url}`),
+};

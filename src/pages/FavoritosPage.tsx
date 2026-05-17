@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
@@ -75,32 +75,11 @@ const favorites: Product[] = [
   },
 ];
 
-export default function FavoritosPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
+export default function FavoritosPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [estadoOpen, setEstadoOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
-  const categoriesRef = useRef<HTMLDivElement>(null);
-  const estadoRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
-        setCategoriesOpen(false);
-      }
-      if (estadoRef.current && !estadoRef.current.contains(e.target as Node)) {
-        setEstadoOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  function onLogout(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
@@ -148,12 +127,12 @@ export default function FavoritosPage({ isLoggedIn, onLogin }: { isLoggedIn: boo
         <div className="flex items-center space-x-6">
           <NotificationDropdown
             isOpen={notificationsOpen}
-            onToggle={() => setNotificationsOpen(!notificationsOpen)}
+            onClose={() => setNotificationsOpen(false)}
           />
 
           <ShieldDropdown
             isOpen={shieldOpen}
-            onToggle={() => setShieldOpen(!shieldOpen)}
+            onClose={() => setShieldOpen(false)}
           />
 
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />

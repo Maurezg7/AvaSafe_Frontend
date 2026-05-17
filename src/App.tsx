@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import OfertaPage from "./pages/OfertaPage";
+import { clearSession } from "./lib/session";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +25,7 @@ function AppRoutes() {
   const onLogin = () => navigate("/login");
 
   const onLogout = () => {
-    localStorage.removeItem("avasafe_token");
-    localStorage.removeItem("avasafe_user");
-    localStorage.removeItem("avasafe_wallet_address");
+    clearSession();
     setIsLoggedIn(false);
     navigate("/login");
   };

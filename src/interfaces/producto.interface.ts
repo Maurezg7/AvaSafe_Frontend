@@ -3,7 +3,7 @@ export interface ProductoInterface {
     name:       string;
     seller:     string;
     nro_pedido: string;
-    price:      string;
+    price:      string | number;
     create:     Date;
     image_url?:  string;
 }
