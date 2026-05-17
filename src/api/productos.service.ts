@@ -6,6 +6,11 @@ export type Producto = ProductoInterface;
 export interface CreateProductoPayload {
   name: string;
   price: number;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  condition?: string;
+  location?: string;
   image_url?: string;
 }
 

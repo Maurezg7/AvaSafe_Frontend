@@ -1,16 +1,14 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginAction } from "../../actions/authActions/login.action";
-import { registerAction } from "../../actions/authActions/register.action";
 import { authAPI } from "../../api/auth.api";
 import { clearSession, getStoredUser, getToken, persistSession } from "../lib/session";
+import { walletAuthAction } from "../../actions/authActions/walletAuth.action";
+import { signMessage } from "@wagmi/core";
+import { wagmiAdapter } from "../lib/appkit";
+import { getNonce } from "../../actions/authActions/walletAuth.action";
 
 export interface User {
   address: string;
-  username: string;
-  email: string;
-  role: string[];
-  created_at: string;
 }
 
 interface AuthContextType {
@@ -18,8 +16,7 @@ interface AuthContextType {
   token: string | null;
   isLoggedIn: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: { address: string; username: string; email: string; password: string }) => Promise<void>;
+  authenticateWithWallet: (address: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -33,57 +30,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = getStoredUser();
-    if (stored) {
-      setUser({
-        address: stored.address ?? "",
-        username: stored.username ?? stored.name ?? "Usuario",
-        email: stored.email ?? "",
-        role: [],
-        created_at: "",
-      });
+    if (stored?.address) {
+      setUser({ address: stored.address });
     }
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const data = await loginAction({ email, password });
-    const jwt = data.token;
-    if (!jwt) throw new Error("No se recibió token del servidor");
-    persistSession({
-      token: jwt,
-      username: data.usuario ?? data.username,
-      email: data.email,
+  const authenticateWithWallet = useCallback(async (address: string) => {
+    const { message } = await getNonce(address);
+
+    const signature = await signMessage(wagmiAdapter.wagmiConfig, {
+      message,
     });
-    const stored = getStoredUser();
+
+    const result = await walletAuthAction({ address, signature });
+    const jwt = result.token;
+    if (!jwt) throw new Error("No se recibió token del servidor");
+
+    persistSession({ token: jwt, address });
     setToken(jwt);
-    setUser(
-      stored
-        ? {
-            address: stored.address ?? "",
-            username: stored.username ?? "Usuario",
-            email: stored.email ?? "",
-            role: [],
-            created_at: "",
-          }
-        : null,
-    );
-  };
+    setUser({ address });
+  }, []);
 
-  const register = async (data: { address: string; username: string; email: string; password: string }) => {
-    await registerAction(data);
-    await login(data.email, data.password);
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
     clearSession();
     setToken(null);
     setUser(null);
     authAPI.post("/usuarios/logout").catch(() => {});
     navigate("/login");
-  };
+  }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token && !!user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token && !!user, loading, authenticateWithWallet, logout }}>
       {children}
     </AuthContext.Provider>
   );

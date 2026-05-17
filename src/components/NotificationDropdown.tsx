@@ -1,17 +1,5 @@
 import { useEffect, useRef } from "react";
-
-type Notification = {
-  title: string;
-  desc: string;
-  time: string;
-};
-
-const notifications: Notification[] = [
-  { title: "Nueva oferta recibida", desc: "Recibiste una oferta por MacBook Pro 16\"", time: "Hace 5 min" },
-  { title: "Pago liberado", desc: "El pago por iPhone 16 Pro Max ha sido liberado", time: "Hace 2 horas" },
-  { title: "Disputa actualizada", desc: "La disputa #DSP-2024 tiene un nuevo mensaje", time: "Hace 1 día" },
-  { title: "Verificación completada", desc: "Tu cuenta ha sido verificada Nivel 2", time: "Hace 3 días" },
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function NotificationDropdown({
   isOpen,
@@ -20,6 +8,7 @@ export default function NotificationDropdown({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,10 +31,12 @@ export default function NotificationDropdown({
       className="absolute top-full right-0 mt-2 w-[360px] bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-4 space-y-3"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white">Notificaciones</h3>
-        <button className="text-[10px] text-brand-purple hover:underline">Marcar todas leídas</button>
+        <h3 className="text-sm font-bold text-white">{t.notifications.title}</h3>
+        <button type="button" className="text-[10px] text-brand-purple hover:underline">
+          {t.notifications.markAllRead}
+        </button>
       </div>
-      {notifications.map((n, i) => (
+      {t.notifications.items.map((n, i) => (
         <div
           key={i}
           className="flex items-start space-x-3 px-3 py-2.5 bg-brand-dark rounded-xl border border-white/5 hover:border-brand-purple/20 transition-all cursor-pointer group"
@@ -58,7 +49,9 @@ export default function NotificationDropdown({
           <span className="text-[9px] text-gray-600 flex-shrink-0">{n.time}</span>
         </div>
       ))}
-      <button className="w-full text-center text-[10px] text-brand-purple hover:underline py-1">Ver todas las notificaciones</button>
+      <button type="button" className="w-full text-center text-[10px] text-brand-purple hover:underline py-1">
+        {t.notifications.viewAll}
+      </button>
     </div>
   );
 }

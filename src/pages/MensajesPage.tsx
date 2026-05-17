@@ -2,6 +2,8 @@ import { useState } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type Message = {
   id: number;
@@ -92,6 +94,7 @@ const conversations: Conversation[] = [
 ];
 
 export default function MensajesPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
@@ -102,12 +105,13 @@ export default function MensajesPage({ isLoggedIn, onLogin, onLogout }: { isLogg
         <div className="flex items-center space-x-6">
           <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
           <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
       <section className="px-8 pt-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Mensajes</h1>
+        <h1 className="text-4xl font-bold text-white mb-2">{t.mensajes.title}</h1>
         <p className="text-sm text-gray-400 mb-6">Comunícate de forma segura y encriptada con otros compradores y vendedores.</p>
       </section>
 
@@ -129,7 +133,7 @@ export default function MensajesPage({ isLoggedIn, onLogin, onLogout }: { isLogg
           </div>
 
           <div className="px-4 pb-3 flex items-center space-x-2">
-            {(["Todas", "En Proceso", "Archivadas"] as const).map((tab) => (
+            {(["Todas", "En Proceso", "{t.mensajes.archived}"] as const).map((tab) => (
               <button
                 key={tab}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${

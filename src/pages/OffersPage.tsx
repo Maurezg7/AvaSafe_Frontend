@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type Offer = {
   id: number;
@@ -86,6 +88,7 @@ const offers: Offer[] = [
 ];
 
 export default function OffersPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
@@ -186,171 +189,172 @@ export default function OffersPage({ isLoggedIn, onLogin, onLogout }: { isLogged
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
 
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
       <section className="px-8 py-10">
         <h1 className="text-4xl font-bold max-w-2xl leading-tight">
-          Gestiona tus <span className="text-brand-purple">ofertas</span> y encuentra las mejores <span className="text-brand-purple">oportunidades.</span>
+          {t.offers.hero} <span className="text-brand-purple">{t.offers.heroHighlight}</span> {t.offers.heroSuffix} y encuentra las mejores <span className="text-brand-purple">oportunidades.</span>
         </h1>
       </section>
 
       <section className="px-8 pb-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Mis Ofertas</h2>
-          <div className="flex items-center space-x-3">
-            <button className="text-xs px-3 py-1.5 bg-brand-purple/10 text-brand-purple rounded-lg hover:bg-brand-purple/20 transition-colors font-semibold">
-              Pendientes
-            </button>
-            <button className="text-xs px-3 py-1.5 bg-brand-sidebar text-gray-400 rounded-lg hover:text-white transition-colors">
-              Aceptadas
-            </button>
-            <button className="text-xs px-3 py-1.5 bg-brand-sidebar text-gray-400 rounded-lg hover:text-white transition-colors">
-              Rechazadas
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {offers.map((offer) => (
-            <article
-              key={offer.id}
-              className="bg-brand-sidebar rounded-[2rem] p-5 flex flex-col border border-white/5 relative group hover:border-brand-purple/40 transition-all"
-            >
-              <button className="absolute top-6 left-6 p-2 bg-brand-dark/40 rounded-full text-white/80 hover:text-brand-purple transition-colors z-10">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-              </button>
-
-              {offer.badge && (
-                <div className="absolute top-6 right-6 z-10">
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-brand-purple rounded-md shadow-lg shadow-brand-purple/20">
-                    {offer.badge}
-                  </span>
-                </div>
-              )}
-
-              <div className="aspect-square rounded-2xl bg-brand-dark overflow-hidden mb-4 flex items-center justify-center p-4">
-                <img
-                  src={offer.image}
-                  alt={offer.name}
-                  className="object-contain transform group-hover:scale-110 transition-transform duration-500"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2 mb-3">
-                <img
-                  src="https://i.pravatar.cc/50"
-                  alt={offer.seller}
-                  className="w-6 h-6 rounded-full border border-brand-purple/30"
-                />
-                <span className="text-xs font-medium text-gray-200">{offer.seller}</span>
-                <svg className="w-3.5 h-3.5 text-brand-purple" fill="currentColor" viewBox="0 0 20 20">
-                  <path clipRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd" />
-                </svg>
-              </div>
-
-              <div className="flex items-center space-x-1 text-[10px] text-gray-500 mb-2">
-                <div className="flex items-center text-brand-purple">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <span className="ml-1 font-bold">{offer.rating}</span>
-                  <span className="text-gray-500 ml-0.5">({offer.reviews})</span>
-                </div>
-                <span>•</span>
-                <span>{offer.time}</span>
-              </div>
-
-              <h3 className="text-sm font-bold text-white mb-0.5">{offer.name}</h3>
-              <p className="text-[10px] text-gray-500 mb-4">{offer.description}</p>
-
-              <div className="mt-auto">
-                <div className="flex flex-col mb-4">
-                  <span className="text-lg font-bold text-brand-purple">{offer.price}</span>
-                  <span className="text-[10px] text-gray-500">≈ {offer.usd}</span>
-                </div>
-
-                {offer.status && (
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] text-gray-400">Tu oferta:</span>
-                    <span className="text-xs font-bold text-white">{offer.offerPrice}</span>
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                      offer.status === "Aceptada"
-                        ? "bg-green-500/20 text-green-400"
-                        : offer.status === "Rechazada"
-                        ? "bg-brand-purple/20 text-brand-purple"
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
-                      {offer.status}
-                    </span>
-                  </div>
-                )}
-
-                <button className="w-full py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all">
-                  <span>{offer.status === "Aceptada" ? "Ir al chat" : offer.status === "Rechazada" ? "Hacer contraoferta" : "Esperando respuesta"}</span>
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
-                  </svg>
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 lg:col-span-9 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">{t.offers.title}</h2>
+              <div className="flex items-center space-x-3">
+                <button className="text-xs px-3 py-1.5 bg-brand-purple/10 text-brand-purple rounded-lg hover:bg-brand-purple/20 transition-colors font-semibold">
+                  {t.offers.pending}
+                </button>
+                <button className="text-xs px-3 py-1.5 bg-brand-sidebar text-gray-400 rounded-lg hover:text-white transition-colors">
+                  {t.offers.accepted}
+                </button>
+                <button className="text-xs px-3 py-1.5 bg-brand-sidebar text-gray-400 rounded-lg hover:text-white transition-colors">
+                  {t.offers.rejected}
                 </button>
               </div>
-            </article>
-          ))}
-        </div>
-      </section>
+            </div>
 
-      <section className="px-8 pb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3 py-4 px-6 mt-4 border-t border-violet-500/10 bg-[#1e1e24]/30 rounded-xl grid grid-cols-4 gap-4 items-center justify-items-center">
-            <div className="flex items-center space-x-3">
-              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">12,458+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Usuarios Activos</span>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {offers.map((offer) => (
+                <article
+                  key={offer.id}
+                  className="bg-brand-sidebar rounded-[2rem] p-5 flex flex-col border border-white/5 relative group hover:border-brand-purple/40 transition-all"
+                >
+                  <button className="absolute top-6 left-6 p-2 bg-brand-dark/40 rounded-full text-white/80 hover:text-brand-purple transition-colors z-10">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
+                  </button>
+
+                  {offer.badge && (
+                    <div className="absolute top-6 right-6 z-10">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-brand-purple rounded-md shadow-lg shadow-brand-purple/20">
+                        {offer.badge}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="aspect-square rounded-2xl bg-brand-dark overflow-hidden mb-4 flex items-center justify-center p-4">
+                    <img
+                      src={offer.image}
+                      alt={offer.name}
+                      className="object-contain transform group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2 mb-3">
+                    <img
+                      src="https://i.pravatar.cc/50"
+                      alt={offer.seller}
+                      className="w-6 h-6 rounded-full border border-brand-purple/30"
+                    />
+                    <span className="text-xs font-medium text-gray-200">{offer.seller}</span>
+                    <svg className="w-3.5 h-3.5 text-brand-purple" fill="currentColor" viewBox="0 0 20 20">
+                      <path clipRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd" />
+                    </svg>
+                  </div>
+
+                  <div className="flex items-center space-x-1 text-[10px] text-gray-500 mb-2">
+                    <div className="flex items-center text-brand-purple">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="ml-1 font-bold">{offer.rating}</span>
+                      <span className="text-gray-500 ml-0.5">({offer.reviews})</span>
+                    </div>
+                    <span>•</span>
+                    <span>{offer.time}</span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-white mb-0.5">{offer.name}</h3>
+                  <p className="text-[10px] text-gray-500 mb-4">{offer.description}</p>
+
+                  <div className="mt-auto">
+                    <div className="flex flex-col mb-4">
+                      <span className="text-lg font-bold text-brand-purple">{offer.price}</span>
+                      <span className="text-[10px] text-gray-500">≈ {offer.usd}</span>
+                    </div>
+
+                    {offer.status && (
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] text-gray-400">Tu oferta:</span>
+                        <span className="text-xs font-bold text-white">{offer.offerPrice}</span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
+                          offer.status === "Aceptada"
+                            ? "bg-green-500/20 text-green-400"
+                            : offer.status === "Rechazada"
+                            ? "bg-brand-purple/20 text-brand-purple"
+                            : "bg-yellow-500/20 text-yellow-400"
+                        }`}>
+                          {offer.status}
+                        </span>
+                      </div>
+                    )}
+
+                    <button className="w-full py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all">
+                      <span>{offer.status === "Aceptada" ? "Ir al chat" : offer.status === "Rechazada" ? "Hacer contraoferta" : "Esperando respuesta"}</span>
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
+
+            <div className="border-t border-violet-500/10 bg-[#1e1e24]/30 rounded-xl grid grid-cols-4 gap-2 items-center justify-items-center py-2 px-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-1 bg-brand-purple/10 rounded-lg text-brand-purple">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold">12,458+</span>
+                  <span className="text-[8px] text-gray-500 uppercase font-semibold">{t.common.activeUsers || 'Usuarios Activos'}</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">3,245+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Productos Listados</span>
+              <div className="flex items-center space-x-2">
+                <div className="p-1 bg-brand-purple/10 rounded-lg text-brand-purple">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold">3,245+</span>
+                  <span className="text-[8px] text-gray-500 uppercase font-semibold">{t.common.listedProducts || 'Productos Listados'}</span>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
+              <div className="flex items-center space-x-2">
+                <div className="p-1 bg-brand-purple/10 rounded-lg text-brand-purple">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold">8,932+</span>
+                  <span className="text-[8px] text-gray-500 uppercase font-semibold">{t.common.transactions || 'Transacciones'}</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">8,932+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-1.5 bg-brand-purple/10 rounded-lg text-brand-purple">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">99.9%</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones Seguras</span>
+              <div className="flex items-center space-x-2">
+                <div className="p-1 bg-brand-purple/10 rounded-lg text-brand-purple">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold">99.9%</span>
+                  <span className="text-[8px] text-gray-500 uppercase font-semibold">{t.common.secureTransactions || 'Transacciones Seguras'}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="col-span-12 lg:col-span-3 space-y-4 lg:sticky lg:top-24 lg:self-start">
             <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5 group hover:border-brand-purple/30 transition-all">
               <div className="flex items-center space-x-3 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-brand-purple/20 flex items-center justify-center text-brand-purple">

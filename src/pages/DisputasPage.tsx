@@ -2,6 +2,8 @@ import { useState } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type Dispute = {
   id: number;
@@ -63,6 +65,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function DisputasPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
@@ -75,6 +78,7 @@ export default function DisputasPage({ isLoggedIn, onLogin, onLogout }: { isLogg
 
           <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
 
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
@@ -82,15 +86,15 @@ export default function DisputasPage({ isLoggedIn, onLogin, onLogout }: { isLogg
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col min-w-0">
           <section className="px-8 pt-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Disputas</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">{t.disputas.title}</h1>
             <p className="text-sm text-gray-400 mb-6">Gestiona y da seguimiento a tus disputas abiertas y resueltas.</p>
 
             <div className="flex items-center space-x-2 mt-6">
-              {(["Abiertas (2)", "En Revisión", "Resueltas", "Cerradas"] as const).map((tab) => (
+              {(["{t.disputas.open} (2)", "En Revisión", "Resueltas", "Cerradas"] as const).map((tab) => (
                 <button
                   key={tab}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    tab === "Abiertas (2)"
+                    tab === "{t.disputas.open} (2)"
                       ? "bg-brand-purple text-white shadow-lg shadow-brand-purple/20"
                       : "bg-brand-sidebar text-gray-400 hover:text-white"
                   }`}

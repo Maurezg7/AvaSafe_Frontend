@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type Product = {
   id: number;
@@ -76,6 +78,7 @@ const favorites: Product[] = [
 ];
 
 export default function FavoritosPage({ isLoggedIn, onLogin, onLogout }: { isLoggedIn: boolean; onLogin: () => void; onLogout: () => void }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
@@ -135,20 +138,21 @@ export default function FavoritosPage({ isLoggedIn, onLogin, onLogout }: { isLog
             onClose={() => setShieldOpen(false)}
           />
 
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
       <section className="px-8 py-10">
         <h1 className="text-4xl font-bold max-w-2xl leading-tight">
-          Tus productos <span className="text-brand-purple">favoritos</span> en un entorno <span className="text-brand-purple">seguro</span> y <span className="text-brand-purple">descentralizado.</span>
+          {t.favoritos.hero} <span className="text-brand-purple">{t.favoritos.heroHighlight}</span> en un entorno <span className="text-brand-purple">seguro</span> y <span className="text-brand-purple">descentralizado.</span>
         </h1>
         <p className="text-sm text-gray-500 mt-3">Guarda tus productos preferidos y accede a ellos rápidamente.</p>
       </section>
 
       <section className="px-8 pb-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Mis Favoritos</h2>
+          <h2 className="text-xl font-bold">{t.favoritos.title}</h2>
           <span className="text-[10px] text-gray-500 bg-brand-sidebar px-3 py-1.5 rounded-lg">{favorites.length} productos</span>
         </div>
 

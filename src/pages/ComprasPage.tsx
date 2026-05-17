@@ -4,6 +4,8 @@ import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
 import { ordenesService, type Orden } from "../api/ordenes.service";
 import { getBuyerAddress } from "../lib/session";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type Purchase = {
   id: number;
@@ -52,6 +54,7 @@ export default function ComprasPage({
   onLogin: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useLanguage();
   const buyerAddress = getBuyerAddress();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
@@ -84,9 +87,9 @@ export default function ComprasPage({
         }));
         setPurchases(mapped);
       })
-      .catch((err) => setFetchError(err?.message || "Error al cargar compras"))
+      .catch((err) => setFetchError(err?.message || t.compras.loadError))
       .finally(() => setLoading(false));
-  }, [buyerAddress]);
+  }, [buyerAddress, t.compras.loadError]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -110,7 +113,7 @@ export default function ComprasPage({
             </span>
             <input
               type="text"
-              placeholder="Buscar en mis compras..."
+              placeholder={t.compras.searchPlaceholder}
               className="block w-full pl-10 pr-3 py-2 bg-brand-sidebar border-none text-sm rounded-xl focus:ring-1 focus:ring-brand-purple text-gray-200 placeholder-gray-500 transition-all"
             />
           </div>
@@ -120,16 +123,16 @@ export default function ComprasPage({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
-              <span>Filtros</span>
+              <span>{t.common.filters}</span>
             </button>
             {estadoOpen && (
               <div className="absolute top-full left-0 mt-2 w-64 bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white">Filtros</h3>
-                  <button className="text-[11px] text-brand-purple hover:underline">Limpiar todo</button>
+                  <h3 className="text-sm font-bold text-white">{t.common.filters}</h3>
+                  <button type="button" className="text-[11px] text-brand-purple hover:underline">{t.common.clearAll}</button>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[9px] text-gray-500 uppercase tracking-wider">Estado</span>
+                  <span className="text-[9px] text-gray-500 uppercase tracking-wider">{t.common.status}</span>
                   <div className="flex gap-2">
                     {["En Proceso", "En Escrow", "Completada", "Cancelada"].map((s) => (
                       <button key={s} className="text-[10px] px-3 py-1.5 bg-brand-dark text-gray-400 rounded-xl border border-white/5 hover:border-brand-purple/30 transition-colors">{s}</button>
@@ -146,23 +149,23 @@ export default function ComprasPage({
 
           <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
 
-      <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />        </div>
+      <LanguageSwitcher compact /><UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />        </div>
       </header>
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           <section className="px-8 py-10 pb-6">
             <h1 className="text-4xl font-bold leading-tight">
-              Mis <span className="text-brand-purple">Compras</span>
+              {t.compras.title} <span className="text-brand-purple">{t.compras.titleHighlight}</span>
             </h1>
             <p className="text-sm text-gray-500 mt-2">
-              Historial y seguimiento de todas tus transacciones en la plataforma.
+              {t.compras.subtitle}
             </p>
           </section>
 
           <section className="px-8 pb-8">
             <div className="flex items-center space-x-2">
-              {(["Todas", "En Proceso", "En Escrow", "Completadas", "Canceladas"] as Tab[]).map((tab) => (
+              {([t.common.all, t.compras.inProcess, t.compras.inEscrow, t.compras.completed, t.compras.cancelled] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
@@ -184,7 +187,7 @@ export default function ComprasPage({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <p className="text-sm">{"Cargando..."}</p>
+                <p className="text-sm">{t.common.loading}</p>
               </div>
             ) : fetchError ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -198,7 +201,7 @@ export default function ComprasPage({
                 <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
-                <p className="text-lg font-medium">{"No tienes compras"}</p>
+                <p className="text-lg font-medium">{t.compras.noPurchases}</p>
               </div>
             ) : purchases.map((purchase) => (
               <div
@@ -266,7 +269,7 @@ export default function ComprasPage({
                   <span className="text-base font-bold text-brand-purple">{purchase.price}</span>
                   <span className="text-[9px] text-gray-500">≈ {purchase.usd}</span>
                   <button className="mt-1 px-4 py-1.5 border border-brand-purple/30 text-brand-purple rounded-lg text-[10px] font-semibold hover:bg-brand-purple/10 transition-all">
-                    Ver Detalles
+                    {t.common.viewDetails}
                   </button>
                 </div>
               </div>

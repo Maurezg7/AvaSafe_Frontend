@@ -3,6 +3,7 @@ import Nav from "./Nav";
 
 const pageToPath: Record<string, string> = {
   explorer: "/",
+  vender: "/vender",
   offers: "/ofertas",
   compras: "/compras",
   mensajes: "/mensajes",
@@ -15,6 +16,7 @@ const pageToPath: Record<string, string> = {
 
 const pathToPage: Record<string, string> = {
   "/": "explorer",
+  "/vender": "vender",
   "/ofertas": "offers",
   "/compras": "compras",
   "/mensajes": "mensajes",

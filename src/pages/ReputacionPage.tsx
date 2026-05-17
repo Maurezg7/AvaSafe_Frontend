@@ -2,6 +2,8 @@ import { useState } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 export default function ReputacionPage({
   isLoggedIn,
@@ -12,6 +14,7 @@ export default function ReputacionPage({
   onLogin: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
@@ -36,6 +39,7 @@ export default function ReputacionPage({
             </button>
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
@@ -43,8 +47,8 @@ export default function ReputacionPage({
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col min-w-0">
           <section className="px-8 py-10 pb-6 mb-8">
-            <h1 className="text-4xl font-bold leading-tight">Reputación</h1>
-            <p className="text-sm text-gray-500 mt-2">Monitorea tu nivel de confianza, calificaciones y comportamiento dentro de la plataforma.</p>
+            <h1 className="text-4xl font-bold leading-tight">{t.reputacion.title}</h1>
+            <p className="text-sm text-gray-500 mt-2">{t.reputacion.subtitle}</p>
           </section>
 
           <section className="px-8 pb-8">

@@ -1,10 +1,9 @@
-// @ts-nocheck — página en desarrollo; no bloquea el build del marketplace conectado al API.
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
 import { productosService } from "../api/productos.service";
-import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
 const categories = [
@@ -46,7 +45,7 @@ const conditions = ["Nuevo", "Usado"] as const;
 
 export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolean; onLogin: () => void }) {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -65,15 +64,12 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
     location: "",
   });
 
+  const address = localStorage.getItem("avasafe_wallet_address") || "";
+
   useEffect(() => {
-    if (!user?.address) {
-      setLoading(false);
-      return;
-    }
-    productosService.findByUser(user.address)
-      .then((res) => {
-        setMyProducts(res.data);
-      })
+    if (!address) return;
+    productosService.findByUser(address)
+      .then((res) => setMyProducts(res.data))
       .catch(() => {
         const stored = localStorage.getItem("my_products");
         if (stored) {
@@ -81,7 +77,7 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
         }
       })
       .finally(() => setLoading(false));
-  }, [user?.address]);
+  }, [address]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -100,43 +96,30 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
       const res = await productosService.create({
         name: form.name,
         price: Number(form.price),
+        description: form.description || undefined,
+        category: form.category || undefined,
+        subcategory: form.subcategory || undefined,
+        condition: form.condition,
+        location: form.location || undefined,
         image_url: form.image_url || undefined,
       });
-      const newProduct = {
-        ...res.data,
-        description: form.description,
-        category: form.category || t.vender.general,
-        subcategory: form.subcategory,
-        condition: form.condition,
-        location: form.location || t.vender.notSpecified,
-        seller: user?.username || "Yo",
-        rating: "5.0",
-        reviews: 0,
-        time: t.vender.now,
-        usd: `$${(Number(form.price) * 780).toFixed(2)} USD`,
-        sellerVerified: true,
-      };
+      const newProduct = res.data;
       const updated = [newProduct, ...myProducts];
       setMyProducts(updated);
       localStorage.setItem("my_products", JSON.stringify(updated));
       resetForm();
-    } catch (err) {
+    } catch {
       const fallback = {
         id_product: String(Date.now()),
         name: form.name,
         price: Number(form.price),
-        image_url: form.image_url || "",
-        description: form.description,
-        category: form.category || t.vender.general,
-        subcategory: form.subcategory,
+        description: form.description || undefined,
+        category: form.category || undefined,
+        subcategory: form.subcategory || undefined,
         condition: form.condition,
-        location: form.location || t.vender.notSpecified,
-        seller: user?.username || "Yo",
-        rating: "5.0",
-        reviews: 0,
-        time: t.vender.now,
-        usd: `$${(Number(form.price) * 780).toFixed(2)} USD`,
-        sellerVerified: true,
+        location: form.location || undefined,
+        image_url: form.image_url || "",
+        seller: address,
         create: new Date().toISOString(),
       };
       const updated = [fallback, ...myProducts];
@@ -149,15 +132,35 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
   };
 
   const handleDelete = (id: string) => {
-    if (user?.address) {
-      productosService.remove(id, user.address).catch(() => {});
+    if (address) {
+      productosService.remove(id, address).catch(() => {});
     }
-    const updated = myProducts.filter((p) => p.id_product !== id);
+    const updated = myProducts.filter((p: any) => p.id_product !== id);
     setMyProducts(updated);
   };
 
   const selectedCat = categories.find((c) => c.name === form.category);
   const subcategories = selectedCat?.subcategories ?? [];
+
+  if (!isLoggedIn) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center bg-brand-dark">
+        <div className="text-center max-w-md px-8">
+          <svg className="w-20 h-20 mx-auto mb-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+          <h2 className="text-2xl font-bold text-white mb-2">{t.vender.loginRequired}</h2>
+          <p className="text-sm text-gray-400 mb-6">{t.vender.loginRequiredHint}</p>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-8 py-3 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-sm font-bold transition-all"
+          >
+            {t.userMenu.signIn}
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-brand-dark">
@@ -247,7 +250,7 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
                     className="w-full px-4 py-3 bg-brand-dark border border-white/5 rounded-xl text-sm text-gray-200 focus:ring-1 focus:ring-brand-purple transition-all outline-none"
                   >
                     {conditions.map((c) => (
-                      <option key={c} value={c}>{c === "Nuevo" ? t.explorer.new : t.explorer.used}</option>
+                      <option key={c} value={c}>{c === "Nuevo" ? t.common.new : t.common.used}</option>
                     ))}
                   </select>
                 </div>
@@ -369,7 +372,7 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {myProducts.map((p) => (
+            {myProducts.map((p: any) => (
               <article
                 key={p.id_product}
                 className="bg-brand-sidebar rounded-[2rem] p-5 flex flex-col border border-white/5 relative group hover:border-brand-purple/40 transition-all"
@@ -385,7 +388,7 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
                     </div>
                   )}
                   <div className="absolute top-2 left-2 flex space-x-1.5">
-                    <span className="px-2 py-0.5 bg-brand-purple/80 text-white rounded-full text-[9px] font-semibold">{p.condition === "Nuevo" ? t.explorer.new : t.explorer.used}</span>
+                    <span className="px-2 py-0.5 bg-brand-purple/80 text-white rounded-full text-[9px] font-semibold">{p.condition || t.common.new}</span>
                     {p.category && (
                       <span className="px-2 py-0.5 bg-white/10 text-gray-300 rounded-full text-[9px] font-semibold">{p.category}</span>
                     )}
@@ -408,17 +411,14 @@ export default function VenderPage({ isLoggedIn, onLogin }: { isLoggedIn: boolea
                   <div className="w-4 h-4 rounded-full bg-brand-purple/30 flex items-center justify-center text-[8px] font-bold text-brand-purple">
                     {(p.seller || "Y")[0]}
                   </div>
-                  <span className="text-[10px] text-gray-500">{p.seller || "Yo"}</span>
-                  {p.sellerVerified && (
-                    <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path clipRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd" />
-                    </svg>
-                  )}
+                  <span className="text-[10px] text-gray-500">{p.seller ? p.seller.slice(0, 6) + "..." + p.seller.slice(-4) : "Yo"}</span>
+                  <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path clipRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd" />
+                  </svg>
                 </div>
                 <div className="mt-auto">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-lg font-bold text-brand-purple">{Number(p.price).toFixed(2)} AVAX</span>
-                    <span className="text-[10px] text-gray-500">{p.time || t.vender.recent}</span>
                   </div>
                   <div className="flex space-x-2">
                     <button className="flex-1 py-2 bg-brand-purple/10 hover:bg-brand-purple/20 text-brand-purple rounded-xl text-[10px] font-semibold transition-all">

@@ -1,33 +1,62 @@
-import { createContext, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  translations,
+  type Locale,
+  type Translations,
+  interpolate,
+} from "../i18n/translations";
 
-const defaultTranslations = {
-  vender: {
-    title: "Vender productos",
-    subtitle: "Publica tus artículos en el marketplace descentralizado",
-    general: "General",
-    notSpecified: "No especificado",
-    now: "Ahora",
-  },
-  explorer: {
-    makePrivateOffer: "Hacer oferta privada",
-    noResults: "No hay productos",
-    noResultsHint: "Vuelve más tarde o ajusta los filtros",
-  },
+const STORAGE_KEY = "avasafe_locale";
+
+type LanguageContextValue = {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  t: Translations;
+  tr: (template: string, vars?: Record<string, string | number>) => string;
 };
 
-type Translations = typeof defaultTranslations;
+const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-const LanguageContext = createContext<Translations>(defaultTranslations);
+function readStoredLocale(): Locale {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored === "en" ? "en" : "es";
+}
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>(() => readStoredLocale());
+
+  const setLocale = useCallback((next: Locale) => {
+    setLocaleState(next);
+    localStorage.setItem(STORAGE_KEY, next);
+    document.documentElement.lang = next;
+  }, []);
+
+  const value = useMemo<LanguageContextValue>(() => {
+    const t = translations[locale];
+    return {
+      locale,
+      setLocale,
+      t,
+      tr: (template, vars = {}) => interpolate(template, vars),
+    };
+  }, [locale, setLocale]);
+
   return (
-    <LanguageContext.Provider value={defaultTranslations}>
-      {children}
-    </LanguageContext.Provider>
+    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
   );
 }
 
 export function useLanguage() {
-  const t = useContext(LanguageContext);
-  return { t };
+  const ctx = useContext(LanguageContext);
+  if (!ctx) {
+    throw new Error("useLanguage must be used within LanguageProvider");
+  }
+  return ctx;
 }

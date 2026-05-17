@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import { useProduct } from "../../hooks/useProductos";
@@ -41,6 +43,7 @@ export default function OfertaPage({
   onLogin: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useLanguage();
   const { id } = useParams()
   const { queryProductById } = useProduct(id)
   const { isConnected, connectWallet } = useMetaMask();
@@ -133,13 +136,13 @@ export default function OfertaPage({
 
     if (queryProductById.isLoading) return (
     <div className="flex-1 flex items-center justify-center bg-brand-dark">
-      <p className="text-gray-500 text-sm">Cargando producto...</p>
+      <p className="text-gray-500 text-sm">{t.oferta.loading}</p>
     </div>
   )
 
   if (!findProducto) return (
     <div className="flex-1 flex items-center justify-center bg-brand-dark">
-      <p className="text-gray-500 text-sm">Producto no encontrado.</p>
+      <p className="text-gray-500 text-sm">{t.oferta.notFound}</p>
     </div>
   )
 
@@ -155,7 +158,7 @@ export default function OfertaPage({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
             </svg>
-            <span>Volver al explorador</span>
+            <span>{t.oferta.back}</span>
           </button>
           <span className="text-white/10">|</span>
           <span className="text-xs text-gray-500">Pedido #{findProducto.nro_pedido}</span>
@@ -194,6 +197,7 @@ export default function OfertaPage({
             </button>
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
@@ -222,7 +226,7 @@ export default function OfertaPage({
 
           {/* Precio */}
           <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mb-1">Precio publicado</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mb-1">{t.oferta.publishedPrice}</p>
             <p className="text-2xl font-bold text-brand-purple">
               {findProducto.price} <span className="text-base">AVAX</span>
             </p>
@@ -230,7 +234,7 @@ export default function OfertaPage({
 
           {/* Vendedor */}
           <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5 space-y-3">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Vendedor</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{t.oferta.seller}</p>
             <div className="flex items-center space-x-3">
               <img
                 src="https://i.pravatar.cc/100"
@@ -272,7 +276,7 @@ export default function OfertaPage({
                 : "text-gray-400 hover:text-white border border-transparent"
                 }`}
             >
-              Chat con vendedor
+              {t.oferta.chatTab}
             </button>
             <button
               onClick={openOfferTab}
@@ -281,7 +285,7 @@ export default function OfertaPage({
                 : "text-gray-400 hover:text-white border border-transparent"
                 }`}
             >
-              Hacer oferta
+              {t.oferta.offerTab}
             </button>
           </div>
 
@@ -320,10 +324,10 @@ export default function OfertaPage({
                               onClick={aceptarOferta}
                               className="flex-1 py-1.5 bg-brand-purple hover:bg-brand-purple-hover text-white text-[11px] font-bold rounded-lg transition-all"
                             >
-                              Aceptar
+                              {t.oferta.accept}
                             </button>
                             <button className="flex-1 py-1.5 border border-white/10 text-gray-400 hover:text-white text-[11px] font-bold rounded-lg transition-all">
-                              Rechazar
+                              {t.oferta.reject}
                             </button>
                           </div>
                         )}
@@ -366,7 +370,7 @@ export default function OfertaPage({
                   <button
                     onClick={openOfferTab}
                     className="p-2.5 bg-brand-sidebar border border-white/10 hover:border-brand-purple/40 rounded-xl text-gray-400 hover:text-brand-purple transition-all"
-                    title="Hacer oferta"
+                    title="{t.oferta.offerTab}"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
@@ -397,7 +401,7 @@ export default function OfertaPage({
             <div className="flex-1 flex flex-col items-center justify-center px-8 space-y-6">
               <div className="w-full max-w-md space-y-6">
                 <div className="text-center space-y-1">
-                  <h3 className="text-lg font-bold text-white">Hacer oferta privada</h3>
+                  <h3 className="text-lg font-bold text-white">{t.oferta.offerTab} privada</h3>
                   <p className="text-xs text-gray-500">
                     El vendedor recibirá tu oferta de forma privada. Solo él puede verla.
                   </p>
@@ -405,14 +409,14 @@ export default function OfertaPage({
 
                 {/* Precio referencia */}
                 <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">Precio publicado</span>
+                  <span className="text-xs text-gray-400">{t.oferta.publishedPrice}</span>
                   <span className="text-base font-bold text-white">{findProducto.price} AVAX</span>
                 </div>
 
                 {/* Input oferta */}
                 <div className="space-y-2">
                   <label className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">
-                    Tu oferta en AVAX
+                    {t.oferta.yourOfferAvax}
                   </label>
                   <div className="relative">
                     <input
@@ -472,7 +476,7 @@ export default function OfertaPage({
                     onClick={() => setTab("chat")}
                     className="flex-1 py-3 border border-white/10 text-gray-400 hover:text-white text-sm font-bold rounded-xl transition-all"
                   >
-                    Cancelar
+                    {t.common.cancel}
                   </button>
                   <button
                     onClick={sendOferta}
@@ -482,7 +486,7 @@ export default function OfertaPage({
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
                     </svg>
-                    <span>Enviar oferta privada</span>
+                    <span>{t.oferta.sendOffer}</span>
                   </button>
                 </div>
               </div>

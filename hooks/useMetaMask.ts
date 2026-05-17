@@ -1,71 +1,44 @@
+import { useAppKit, useAppKitAccount, useDisconnect } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 
 const WALLET_STORAGE_KEY = "avasafe_wallet_address";
 
 export const useMetaMask = () => {
-  const [address, setAddress] = useState(() => localStorage.getItem(WALLET_STORAGE_KEY) ?? "");
+  const { address: appKitAddress, isConnected } = useAppKitAccount();
+  const { open } = useAppKit();
+  const { disconnect } = useDisconnect();
   const [error, setError] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
 
+  const address = appKitAddress ?? "";
+
   useEffect(() => {
-    const loadCurrentAccount = async () => {
-      if (!window.ethereum) return;
-      const accounts = await window.ethereum.request<string[]>({ method: "eth_accounts" });
-      const currentAddress = accounts[0] ?? "";
-      setAddress(currentAddress);
-      if (currentAddress) {
-        localStorage.setItem(WALLET_STORAGE_KEY, currentAddress);
-      } else {
-        localStorage.removeItem(WALLET_STORAGE_KEY);
-      }
-    };
-
-    loadCurrentAccount().catch(() => {
+    if (address) {
+      localStorage.setItem(WALLET_STORAGE_KEY, address);
+    } else {
       localStorage.removeItem(WALLET_STORAGE_KEY);
-      setAddress("");
-    });
-
-    const handleAccountsChanged = (...args: unknown[]) => {
-      const accounts = (args[0] as string[]) ?? [];
-      const currentAddress = accounts[0] ?? "";
-      setAddress(currentAddress);
-      if (currentAddress) {
-        localStorage.setItem(WALLET_STORAGE_KEY, currentAddress);
-      } else {
-        localStorage.removeItem(WALLET_STORAGE_KEY);
-      }
-    };
-
-    window.ethereum?.on?.("accountsChanged", handleAccountsChanged);
-
-    return () => {
-      window.ethereum?.removeListener?.("accountsChanged", handleAccountsChanged);
-    };
-  }, []);
+    }
+  }, [address]);
 
   const connectWallet = async () => {
     setError("");
-
-    if (!window.ethereum) {
-      const message = "Necesitas MetaMask instalado para continuar.";
-      setError(message);
-      throw new Error(message);
-    }
-
+    setIsConnecting(true);
     try {
-      setIsConnecting(true);
-      const accounts = await window.ethereum.request<string[]>({ method: "eth_requestAccounts" });
-      const currentAddress = accounts[0];
-
-      if (!currentAddress) {
-        throw new Error("No se pudo conectar la wallet.");
-      }
-
-      setAddress(currentAddress);
-      localStorage.setItem(WALLET_STORAGE_KEY, currentAddress);
-      return currentAddress;
+      await open();
+      return new Promise<string>((resolve, reject) => {
+        const check = () => {
+          const addr = localStorage.getItem(WALLET_STORAGE_KEY);
+          if (addr) {
+            resolve(addr);
+          } else {
+            reject(new Error("No se pudo conectar la wallet."));
+          }
+        };
+        setTimeout(check, 1000);
+      });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudo conectar MetaMask.";
+      const message =
+        err instanceof Error ? err.message : "No se pudo conectar la wallet.";
       setError(message);
       throw err;
     } finally {
@@ -73,11 +46,17 @@ export const useMetaMask = () => {
     }
   };
 
+  const disconnectWallet = async () => {
+    await disconnect();
+    localStorage.removeItem(WALLET_STORAGE_KEY);
+  };
+
   return {
     address,
     error,
-    isConnected: Boolean(address),
+    isConnected: isConnected || Boolean(address),
     isConnecting,
     connectWallet,
+    disconnectWallet,
   };
 };

@@ -2,6 +2,8 @@ import { useState } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const encryptedMethods = [
   {
@@ -58,6 +60,7 @@ export default function Configuracion({
   onLogin: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
 
@@ -67,12 +70,13 @@ export default function Configuracion({
         <div className="flex items-center space-x-6">
           <NotificationDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
           <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
       <section className="px-8 pt-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Configuración</h1>
+        <h1 className="text-4xl font-bold text-white mb-2">{t.configuracion.title}</h1>
         <p className="text-sm text-gray-400 mb-6">Administra tus preferencias y la seguridad de tu cuenta.</p>
       </section>
 

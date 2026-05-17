@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ShieldDropdown from "../components/ShieldDropdown";
 import UserMenu from "../components/UserMenu";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useProduct } from "../../hooks/useProductos";
 import type { ProductoInterface } from "../interfaces/producto.interface";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +67,7 @@ export default function ExplorerPage({
   onLogin: () => void;
   onLogout: () => void;
 }) {
+  const { t, tr } = useLanguage();
   const navigate = useNavigate();
   const { address, isConnected, connectWallet } = useMetaMask();
   const { queryProductos } = useProduct();
@@ -118,7 +121,7 @@ export default function ExplorerPage({
       setBuyingProductId(product.id_product);
       buyer = await resolveBuyerAddress();
       if (!buyer) {
-        alert("Conecta MetaMask o inicia sesión con una cuenta que tenga dirección de wallet.");
+        alert(t.explorer.connectWallet);
         return;
       }
 
@@ -139,9 +142,9 @@ export default function ExplorerPage({
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message;
         const text = Array.isArray(message) ? message.join(". ") : message;
-        alert(typeof text === "string" ? text : "No se pudo crear la orden.");
+        alert(typeof text === "string" ? text : t.explorer.orderFailed);
       } else {
-        alert("No se pudo crear la orden. Intenta de nuevo.");
+        alert(t.explorer.orderFailedRetry);
       }
     } finally {
       setBuyingProductId(null);
@@ -220,7 +223,7 @@ export default function ExplorerPage({
 
 
   const selectedCatObj = categories.find((c) => c.name === (selectedCategory || filters.category));
-  const activeLabel = selectedSubcategory || selectedCategory || "Todas las categorías";
+  const activeLabel = selectedSubcategory || selectedCategory || "{t.common.allCategories}";
 
   const activeFilterCount =
     (filters.condition.length > 0 ? 1 : 0) +
@@ -241,7 +244,7 @@ export default function ExplorerPage({
             </span>
             <input
               type="text"
-              placeholder="Buscar productos, marcas o categorías..."
+              placeholder={t.explorer.searchPlaceholder}
               className="block w-full pl-10 pr-3 py-2 bg-brand-sidebar border-none text-sm rounded-xl focus:ring-1 focus:ring-brand-purple text-gray-200 placeholder-gray-500 transition-all"
             />
           </div>
@@ -273,7 +276,7 @@ export default function ExplorerPage({
                       !selectedCategory ? "text-brand-purple bg-brand-purple/10 font-semibold" : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    Todas las categorías
+                    {t.common.allCategories}
                   </button>
                   {categories.map((cat) => (
                     <button
@@ -293,7 +296,7 @@ export default function ExplorerPage({
                 <div className="w-1/2 py-2 max-h-[320px] overflow-y-auto no-scrollbar">
                   {selectedCatObj ? (
                     <>
-                      <p className="px-4 py-1.5 text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Subcategorías</p>
+                      <p className="px-4 py-1.5 text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{t.common.subcategories}</p>
                       {selectedCatObj.subcategories.map((sub) => (
                         <button
                           key={sub}
@@ -308,7 +311,7 @@ export default function ExplorerPage({
                     </>
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-500 text-xs px-4 text-center">
-                      Selecciona una categoría para ver sus subcategorías
+                      {t.common.selectCategory}
                     </div>
                   )}
                 </div>
@@ -328,7 +331,7 @@ export default function ExplorerPage({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
-              <span>Filtros</span>
+              <span>{t.common.filters}</span>
               {activeFilterCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-brand-purple text-white text-[9px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full min-w-[18px] min-h-[18px]">
                   {activeFilterCount}
@@ -340,7 +343,7 @@ export default function ExplorerPage({
               <div className="absolute top-full left-0 mt-2 w-[320px] bg-brand-sidebar border border-violet-500/20 rounded-2xl shadow-2xl shadow-black/50 transition-all duration-200 ease-out z-50 p-4 space-y-3 max-h-[70vh] overflow-y-auto no-scrollbar">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white">Filtros</h3>
-                  <button onClick={clearFilters} className="text-[11px] text-brand-purple hover:underline">Limpiar todo</button>
+                  <button onClick={clearFilters} className="text-[11px] text-brand-purple hover:underline">{t.common.clearAll}</button>
                 </div>
 
                 {activeFilterCount > 0 && (
@@ -362,7 +365,7 @@ export default function ExplorerPage({
 
                 <div className="bg-brand-dark rounded-xl border border-white/5 overflow-hidden">
                   <button onClick={() => toggleFilter("precio")} className="flex items-center justify-between w-full px-3 py-2.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold hover:text-white transition-colors">
-                    <span>Precio</span>
+                    <span>{t.common.price}</span>
                     <svg className={`w-3 h-3 transition-transform ${collapsed.precio ? "" : "rotate-180"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
@@ -370,25 +373,25 @@ export default function ExplorerPage({
                   {!collapsed.precio && (
                     <div className="px-3 pb-3 space-y-2">
                       <div className="flex items-center space-x-2">
-                        <input type="number" placeholder="Mín" value={filters.priceMin} onChange={(e) => setFilters((prev) => ({ ...prev, priceMin: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
+                        <input type="number" placeholder={t.common.min} value={filters.priceMin} onChange={(e) => setFilters((prev) => ({ ...prev, priceMin: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
                         <span className="text-gray-600 text-xs">a</span>
-                        <input type="number" placeholder="Máx" value={filters.priceMax} onChange={(e) => setFilters((prev) => ({ ...prev, priceMax: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
+                        <input type="number" placeholder={t.common.max} value={filters.priceMax} onChange={(e) => setFilters((prev) => ({ ...prev, priceMax: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
                       </div>
-                      <p className="text-[9px] text-gray-600">Precio en AVAX</p>
+                      <p className="text-[9px] text-gray-600">{t.common.priceInAvax}</p>
                     </div>
                   )}
                 </div>
 
                 <div className="bg-brand-dark rounded-xl border border-white/5 overflow-hidden">
                   <button onClick={() => toggleFilter("condicion")} className="flex items-center justify-between w-full px-3 py-2.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold hover:text-white transition-colors">
-                    <span>Condición</span>
+                    <span>{t.common.condition}</span>
                     <svg className={`w-3 h-3 transition-transform ${collapsed.condicion ? "" : "rotate-180"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
                   </button>
                   {!collapsed.condicion && (
                     <div className="px-3 pb-3 space-y-1.5">
-                      {["Nuevo", "Usado"].map((opt) => (
+                      {[t.common.new, t.common.used].map((opt) => (
                         <label key={opt} className="flex items-center space-x-2 cursor-pointer group">
                           <input type="checkbox" checked={filters.condition.includes(opt)} onChange={() => toggleArrayFilter("condition", opt)} className="w-3.5 h-3.5 rounded border-gray-600 bg-brand-sidebar text-brand-purple focus:ring-brand-purple/30 accent-brand-purple" />
                           <span className="text-xs text-gray-400 group-hover:text-white transition-colors">{opt}</span>
@@ -400,28 +403,28 @@ export default function ExplorerPage({
 
                 <div className="bg-brand-dark rounded-xl border border-white/5 overflow-hidden">
                   <button onClick={() => toggleFilter("ubicacion")} className="flex items-center justify-between w-full px-3 py-2.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold hover:text-white transition-colors">
-                    <span>Ubicación</span>
+                    <span>{t.common.location}</span>
                     <svg className={`w-3 h-3 transition-transform ${collapsed.ubicacion ? "" : "rotate-180"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
                   </button>
                   {!collapsed.ubicacion && (
                     <div className="px-3 pb-3">
-                      <input type="text" placeholder="Ciudad, país..." value={filters.location} onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
+                      <input type="text" placeholder={t.common.cityPlaceholder} value={filters.location} onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))} className="w-full bg-brand-sidebar border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-brand-purple outline-none" />
                     </div>
                   )}
                 </div>
 
                 <div className="bg-brand-dark rounded-xl border border-white/5 overflow-hidden">
                   <button onClick={() => toggleFilter("vendedor")} className="flex items-center justify-between w-full px-3 py-2.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold hover:text-white transition-colors">
-                    <span>Tipo de vendedor</span>
+                    <span>{t.common.sellerType}</span>
                     <svg className={`w-3 h-3 transition-transform ${collapsed.vendedor ? "" : "rotate-180"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
                   </button>
                   {!collapsed.vendedor && (
                     <div className="px-3 pb-3 space-y-1.5">
-                      {["Verificado", "No verificado"].map((opt) => (
+                      {[t.common.verified, t.common.notVerified].map((opt) => (
                         <label key={opt} className="flex items-center space-x-2 cursor-pointer group">
                           <input type="checkbox" checked={filters.sellerType.includes(opt)} onChange={() => toggleArrayFilter("sellerType", opt)} className="w-3.5 h-3.5 rounded border-gray-600 bg-brand-sidebar text-brand-purple focus:ring-brand-purple/30 accent-brand-purple" />
                           <span className="text-xs text-gray-400 group-hover:text-white transition-colors">{opt}</span>
@@ -433,7 +436,7 @@ export default function ExplorerPage({
 
                 <div className="bg-brand-dark rounded-xl border border-white/5 overflow-hidden">
                   <button onClick={() => toggleFilter("rating")} className="flex items-center justify-between w-full px-3 py-2.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold hover:text-white transition-colors">
-                    <span>Calificación mínima</span>
+                    <span>{t.common.minRating}</span>
                     <svg className={`w-3 h-3 transition-transform ${collapsed.rating ? "" : "rotate-180"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
@@ -449,7 +452,7 @@ export default function ExplorerPage({
                           </button>
                         ))}
                       </div>
-                      {filters.minRating > 0 && <p className="text-[9px] text-brand-purple mt-1">Desde {filters.minRating} estrellas</p>}
+                      {filters.minRating > 0 && <p className="text-[9px] text-brand-purple mt-1">{tr(t.common.fromStars, { n: filters.minRating })}</p>}
                     </div>
                   )}
                 </div>
@@ -478,20 +481,21 @@ export default function ExplorerPage({
             <ShieldDropdown isOpen={shieldOpen} onClose={() => setShieldOpen(false)} />
           </div>
 
+          <LanguageSwitcher compact />
           <UserMenu isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
         </div>
       </header>
 
       <section className="px-8 py-10">
         <h1 className="text-4xl font-bold max-w-2xl leading-tight">
-          Explora productos únicos en un entorno <span className="text-brand-purple">seguro</span> y <span className="text-brand-purple">descentralizado.</span>
+          {t.explorer.hero} <span className="text-brand-purple">{t.common.secure}</span> {t.common.and} <span className="text-brand-purple">{t.common.decentralized}</span>.
         </h1>
       </section>
 
       <section className="px-8 pb-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Productos Destacados</h2>
-          <span className="text-xs text-gray-500">{data.length} resultados</span>
+          <h2 className="text-xl font-bold">{t.explorer.featured}</h2>
+          <span className="text-xs text-gray-500">{tr(t.common.results, { n: data.length })}</span>
         </div>
         {/* Agregado de leo , pedir productos al backend */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -576,14 +580,14 @@ export default function ExplorerPage({
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                       </svg>
-                      <span>{buyingProductId === product.id_product ? "Procesando..." : "Comprar ahora"}</span>
+                      <span>{buyingProductId === product.id_product ? t.explorer.processing : t.explorer.buyNow}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => goToOffer(product.id_product)}
                       className="flex-1 py-2.5 bg-brand-purple hover:bg-brand-purple-hover text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all"
                     >
-                      <span>Oferta</span>
+                      <span>{t.explorer.offer}</span>
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path clipRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" fillRule="evenodd" />
                       </svg>
@@ -596,8 +600,8 @@ export default function ExplorerPage({
                 <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
-                <p className="text-lg font-medium">No hay productos con estos filtros</p>
-                <p className="text-sm mt-1">Prueba ajustando o limpiando los filtros aplicados</p>
+                <p className="text-lg font-medium">{t.explorer.noResults}</p>
+                <p className="text-sm mt-1">{t.explorer.noResultsHint}</p>
               </div>
             )}
           </div>
@@ -614,7 +618,7 @@ export default function ExplorerPage({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold">12,458+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Usuarios Activos</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">{t.common.activeUsers}</span>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -625,7 +629,7 @@ export default function ExplorerPage({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold">3,245+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Productos Listados</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">{t.common.listedProducts}</span>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -636,7 +640,7 @@ export default function ExplorerPage({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold">8,932+</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">{t.common.transactions}</span>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -647,7 +651,7 @@ export default function ExplorerPage({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold">99.9%</span>
-                <span className="text-[9px] text-gray-500 uppercase font-semibold">Transacciones Seguras</span>
+                <span className="text-[9px] text-gray-500 uppercase font-semibold">{t.common.secureTransactions}</span>
               </div>
             </div>
           </div>
@@ -660,10 +664,10 @@ export default function ExplorerPage({
                     <path d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                   </svg>
                 </div>
-                <h4 className="text-xs font-bold leading-tight">Transacciones Descentralizadas</h4>
+                <h4 className="text-xs font-bold leading-tight">{t.common.decentralizedTx}</h4>
               </div>
               <p className="text-[10px] text-gray-500 mb-2">Sin intermediarios. Tu dinero y tus datos siempre están bajo control.</p>
-              <button className="text-[9px] text-brand-purple hover:underline">Cómo funciona →</button>
+              <button className="text-[9px] text-brand-purple hover:underline">{t.common.howItWorks} →</button>
             </div>
 
             <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5 group hover:border-brand-purple/30 transition-all">
@@ -673,10 +677,10 @@ export default function ExplorerPage({
                     <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                   </svg>
                 </div>
-                <h4 className="text-xs font-bold leading-tight">Verificación de Usuarios</h4>
+                <h4 className="text-xs font-bold leading-tight">{t.common.userVerification}</h4>
               </div>
               <p className="text-[10px] text-gray-500 mb-2">Perfiles verificados para garantizar confianza en cada operación.</p>
-              <button className="text-[9px] text-brand-purple hover:underline">Ver más →</button>
+              <button className="text-[9px] text-brand-purple hover:underline">{t.common.seeMore} →</button>
             </div>
 
             <div className="bg-brand-sidebar rounded-2xl p-4 border border-white/5 group hover:border-brand-purple/30 transition-all">
@@ -686,10 +690,10 @@ export default function ExplorerPage({
                     <path d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                   </svg>
                 </div>
-                <h4 className="text-xs font-bold leading-tight">Soporte 24/7</h4>
+                <h4 className="text-xs font-bold leading-tight">{t.common.support247}</h4>
               </div>
               <p className="text-[10px] text-gray-500 mb-2">Nuestro equipo está disponible para ayudarte en cualquier momento.</p>
-              <button className="text-[9px] text-brand-purple hover:underline">Conectar Soporte →</button>
+              <button className="text-[9px] text-brand-purple hover:underline">{t.common.connectSupport} →</button>
             </div>
           </div>
         </div>

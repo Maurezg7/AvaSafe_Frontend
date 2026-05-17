@@ -10,11 +10,12 @@ import DisputasPage from "./pages/DisputasPage";
 import ReputacionPage from "./pages/ReputacionPage";
 import SoportePage from "./pages/SoportePage";
 import Configuracion from "./pages/ConfiguracionPage";
+import VenderPage from "./pages/VenderPage";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import OfertaPage from "./pages/OfertaPage";
 import { clearSession } from "./lib/session";
+import { LanguageProvider } from "./context/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -40,9 +41,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage onAuthSuccess={onAuthSuccess} />} />
-      <Route path="/register" element={<RegisterPage onAuthSuccess={onAuthSuccess} />} />
       <Route element={<DashboardLayout />}>
         <Route index element={<ExplorerPage {...routeProps} />} />
+        <Route path="vender" element={<VenderPage {...routeProps} />} />
         <Route path="oferta/:id" element={<OfertaPage {...routeProps} />} />
         <Route path="ofertas/:id" element={<OfertaPage {...routeProps} />} />
         <Route path="ofertas" element={<OffersPage {...routeProps} />} />
@@ -61,9 +62,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
