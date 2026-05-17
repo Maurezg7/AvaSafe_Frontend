@@ -8,8 +8,8 @@ import ShieldDropdown from "../components/ShieldDropdown";
 import { useProduct } from "../../hooks/useProductos";
 import { useMetaMask } from "../../hooks/useMetaMask";
 import { useEscrow } from "../../hooks/useEscrow";
-import { ordenesService } from "../api/ordenes.service";
-import { getBuyerAddress } from "../lib/session";
+import { ordenesService, type Orden } from "../api/ordenes.service";
+
 
 type Message = {
   id: number;

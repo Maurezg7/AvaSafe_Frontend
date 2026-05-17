@@ -8,16 +8,14 @@ import { useEscrow } from "../../hooks/useEscrow";
 export default function EscrowPage({
   isLoggedIn,
   onLogin,
-  onLogout,
 }: {
   isLoggedIn: boolean;
   onLogin: () => void;
   onLogout: () => void;
 }) {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const buyerAddress = getBuyerAddress();
-  const { confirmDelivery, isProcessing } = useEscrow();
+  const { confirmDelivery } = useEscrow();
   const [escrows, setEscrows] = useState<Orden[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);

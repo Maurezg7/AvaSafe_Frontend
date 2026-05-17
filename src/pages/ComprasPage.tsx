@@ -62,7 +62,7 @@ export default function ComprasPage({
   const { t } = useLanguage();
   const navigate = useNavigate();
   const buyerAddress = getBuyerAddress();
-  const { confirmDelivery, isProcessing: escrowProcessing } = useEscrow();
+  const { confirmDelivery } = useEscrow();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shieldOpen, setShieldOpen] = useState(false);
   const [estadoOpen, setEstadoOpen] = useState(false);
@@ -134,7 +134,7 @@ export default function ComprasPage({
       );
       setPurchases(mapped);
     } catch (err) {
-      setFetchError(err?.message || t.compras.loadError);
+      setFetchError((err as Error)?.message || t.compras.loadError);
     } finally {
       setLoading(false);
     }

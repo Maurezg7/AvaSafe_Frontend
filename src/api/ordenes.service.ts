@@ -7,6 +7,9 @@ export interface CreateOrdenDto {
   seller: string;
   nro_pedido: string;
   state?: OrderState;
+  tradeId?: string;
+  fundTxHash?: string;
+  escrowTxHash?: string;
   amountAvax?: number;
 }
 
